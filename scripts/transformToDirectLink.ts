@@ -1,17 +1,15 @@
-// utils/transformToDirectLink.ts
-
 export function transformToDirectLink(url: string): string {
-  try {
-    if (!url.startsWith("http")) return url;
-
-    const parsed = new URL(url);
-    const shareId = parsed.pathname.split("/").pop();
-
-    if (!shareId) return url;
-
-    return `https://woutervellekoopnl-my.sharepoint.com/personal/info_woutervellekoop_nl/_layouts/15/download.aspx?share=${shareId}`;
-  } catch (err) {
-    console.error("❌ Ongeldige URL:", url);
-    return url;
+  // OneDrive short link (1drv.ms) → force download
+  if (url.includes("1drv.ms")) {
+    return url + "?download=1";
   }
+
+  // OneDrive long link → force download
+  if (url.includes("onedrive.live.com")) {
+    const hasParams = url.includes("?");
+    return hasParams ? url + "&download=1" : url + "?download=1";
+  }
+
+  // Anders: geef gewoon de originele link terug
+  return url;
 }
