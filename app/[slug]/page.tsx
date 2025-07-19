@@ -1,10 +1,9 @@
-import fs from "fs";
+import fs from "fs/promises";
 import path from "path";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import DownloadCard from "@/components/DownloadCard";
 import { transformToDirectLink } from "@/scripts/transformToDirectLink";
-import type { Metadata, ResolvingMetadata } from "next";
 
 type DownloadInfo = {
   title: string;
@@ -14,37 +13,13 @@ type DownloadInfo = {
   heroImage?: string;
 };
 
-export async function generateMetadata(
-  { params }: { params: { slug: string } },
-  _parent?: ResolvingMetadata
-): Promise<Metadata> {
-  const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = fs.readFileSync(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
-
-  const download = data[params.slug];
-  if (!download) return { title: "downloads.wouter.photo" };
-
-  return {
-    title: `${download.title} | downloads.wouter.photo`,
-  };
-}
-
-export async function generateStaticParams() {
-  const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = fs.readFileSync(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
-
-  return Object.keys(data).map((slug) => ({ slug }));
-}
-
-export default function DownloadPage({
+export default async function DownloadPage({
   params,
 }: {
   params: { slug: string };
 }) {
   const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = fs.readFileSync(filePath, "utf-8");
+  const jsonData = await fs.readFile(filePath, "utf-8");
   const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
 
   const download = data[params.slug];
