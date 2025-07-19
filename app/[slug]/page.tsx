@@ -5,11 +5,26 @@ import Header from "@/components/Header";
 import { transformToDirectLink } from "@/scripts/transformToDirectLink";
 import DownloadCard from "@/components/DownloadCard";
 
+export async function generateMetadata({ params }: PageProps) {
+  const filePath = path.join(process.cwd(), "public", "data.json");
+  const jsonData = fs.readFileSync(filePath, "utf-8");
+  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+
+  const download = data[params.slug];
+  if (!download) {
+    return { title: "downloads.wouter.photo" };
+  }
+
+  return {
+    title: `${download.title} | downloads.wouter.photo`,
+  };
+}
+
 type DownloadInfo = {
   title: string;
   client: string;
   date: string;
-  originalUrl: string;
+  downloadUrl: string;
   heroImage?: string;
 };
 
@@ -33,8 +48,8 @@ export default function DownloadPage({ params }: PageProps) {
   const download = data[params.slug];
   if (!download) notFound();
 
-  const { title, client, date, originalUrl, heroImage } = download;
-  const downloadUrl = transformToDirectLink(originalUrl);
+  const { title, client, date, downloadUrl, heroImage } = download;
+  const transformedUrl = transformToDirectLink(downloadUrl);
   const heroImageUrl = heroImage ? transformToDirectLink(heroImage) : "/hero.jpg";
 
   return (
@@ -42,13 +57,13 @@ export default function DownloadPage({ params }: PageProps) {
       <Header />
       <div
         className="flex-1 flex items-center justify-center bg-cover bg-center"
-        style={{ backgroundImage: `url("${heroImageUrl}")` }}
+        style={{ backgroundImage: `url('${heroImageUrl}')` }}
       >
         <DownloadCard
           title={title}
           client={client}
           date={date}
-          downloadUrl={downloadUrl}
+          downloadUrl={transformedUrl}
         />
       </div>
     </div>
