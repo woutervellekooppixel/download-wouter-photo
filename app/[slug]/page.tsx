@@ -2,11 +2,10 @@ import fs from "fs";
 import path from "path";
 import { notFound } from "next/navigation";
 import Header from "@/components/Header";
-import { transformToDirectLink } from "@/scripts/transformToDirectLink";
 import DownloadCard from "@/components/DownloadCard";
+import { transformToDirectLink } from "@/scripts/transformToDirectLink";
 import type { Metadata, ResolvingMetadata } from "next";
 
-// Type voor individuele downloads
 type DownloadInfo = {
   title: string;
   client: string;
@@ -15,7 +14,6 @@ type DownloadInfo = {
   heroImage?: string;
 };
 
-// Metadata voor SEO en paginatitel
 export async function generateMetadata(
   { params }: { params: { slug: string } },
   _parent?: ResolvingMetadata
@@ -25,16 +23,13 @@ export async function generateMetadata(
   const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
 
   const download = data[params.slug];
-  if (!download) {
-    return { title: "downloads.wouter.photo" };
-  }
+  if (!download) return { title: "downloads.wouter.photo" };
 
   return {
     title: `${download.title} | downloads.wouter.photo`,
   };
 }
 
-// Genereer statische pagina's voor alle slugs in data.json
 export async function generateStaticParams() {
   const filePath = path.join(process.cwd(), "public", "data.json");
   const jsonData = fs.readFileSync(filePath, "utf-8");
@@ -43,7 +38,6 @@ export async function generateStaticParams() {
   return Object.keys(data).map((slug) => ({ slug }));
 }
 
-// Hoofdpagina-component
 export default function DownloadPage({
   params,
 }: {
