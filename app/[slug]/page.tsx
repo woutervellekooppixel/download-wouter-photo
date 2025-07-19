@@ -5,10 +5,17 @@ import Header from "@/components/Header";
 import { transformToDirectLink } from "@/scripts/transformToDirectLink";
 import DownloadCard from "@/components/DownloadCard";
 
-export async function generateMetadata({ params }: PageProps) {
+import type { Metadata, ResolvingMetadata } from "next";
+import fs from "fs";
+import path from "path";
+
+export async function generateMetadata(
+  { params }: { params: { slug: string } },
+  parent?: ResolvingMetadata
+): Promise<Metadata> {
   const filePath = path.join(process.cwd(), "public", "data.json");
   const jsonData = fs.readFileSync(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+  const data = JSON.parse(jsonData);
 
   const download = data[params.slug];
   if (!download) {
