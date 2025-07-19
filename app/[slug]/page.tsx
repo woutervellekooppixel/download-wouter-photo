@@ -6,8 +6,6 @@ import { transformToDirectLink } from "@/scripts/transformToDirectLink";
 import DownloadCard from "@/components/DownloadCard";
 
 import type { Metadata, ResolvingMetadata } from "next";
-import fs from "fs";
-import path from "path";
 
 export async function generateMetadata(
   { params }: { params: { slug: string } },
@@ -33,10 +31,6 @@ type DownloadInfo = {
   date: string;
   downloadUrl: string;
   heroImage?: string;
-};
-
-type PageProps = {
-  params: { slug: string };
 };
 
 export async function generateStaticParams() {
