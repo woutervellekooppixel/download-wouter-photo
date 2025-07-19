@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation"; // <-- aangepast
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import DownloadCard from "@/components/DownloadCard";
@@ -52,7 +52,11 @@ export default async function Page({
   const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
 
   const download = data[params.slug];
-  if (!download) notFound();
+
+  // ✅ Redirect als slug niet bestaat
+  if (!download) {
+    redirect("https://wouter.photo");
+  }
 
   const { title, client, date, downloadUrl, heroImage } = download;
   const transformedUrl = transformToDirectLink(downloadUrl);
