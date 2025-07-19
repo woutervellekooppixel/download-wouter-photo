@@ -1,3 +1,5 @@
+// app/[slug]/page.tsx
+
 import fs from "fs/promises";
 import path from "path";
 import { notFound } from "next/navigation";
