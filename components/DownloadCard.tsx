@@ -24,7 +24,7 @@ export default function DownloadCard({ title, client, date, downloadUrl }: Props
   }, [])
 
   return (
-    <div className="text-center">
+    <div className="text-center px-4">
       {/* Tooltip */}
       <div className="relative inline-block mb-6">
         <div
@@ -36,7 +36,7 @@ export default function DownloadCard({ title, client, date, downloadUrl }: Props
           <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 w-3 h-3 bg-white rotate-45 shadow-sm z-[-1]" />
         </div>
 
-        {/* Grote ronde subtiele knop */}
+        {/* Grote ronde knop */}
         <a
           href={downloadUrl}
           download

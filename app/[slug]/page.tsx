@@ -15,7 +15,6 @@ type DownloadInfo = {
   heroImage?: string;
 };
 
-// Metadata voor browser-tab en SEO
 export async function generateMetadata({
   params,
 }: {
@@ -35,7 +34,6 @@ export async function generateMetadata({
   };
 }
 
-// Alle beschikbare pagina's (slugs) genereren op build
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const filePath = path.join(process.cwd(), "public", "data.json");
   const jsonData = await fs.readFile(filePath, "utf-8");
@@ -44,7 +42,6 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
   return Object.keys(data).map((slug) => ({ slug }));
 }
 
-// De downloadpagina zelf
 export default async function Page({
   params,
 }: {
@@ -64,19 +61,14 @@ export default async function Page({
     : "/hero.jpg";
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* Header (optioneel met achtergrond transparantie aanpassen in Header.tsx) */}
+    <div className="min-h-screen bg-black text-white pt-20">
       <Header />
 
-      {/* Hero achtergrond met overlay */}
       <div
-        className="relative grow flex items-center justify-center bg-cover bg-center"
+        className="relative min-h-[calc(100vh-80px)] w-full bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: `url('${heroImageUrl}')` }}
       >
-        {/* Donkere overlay voor leesbaarheid */}
         <div className="absolute inset-0 bg-black/50 z-0" />
-
-        {/* DownloadCard gecentreerd */}
         <div className="relative z-10 flex items-center justify-center w-full h-full">
           <DownloadCard
             title={title}

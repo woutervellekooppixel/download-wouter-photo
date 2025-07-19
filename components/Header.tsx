@@ -18,7 +18,7 @@ export default function Header() {
   else if (pathname.startsWith('/misc')) suffix = 'MISC'
 
   return (
-    <header className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
+    <header className="fixed top-0 left-0 w-full z-50 flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
       <Link href="/" className="text-xl tracking-tight text-black flex items-baseline gap-1">
         <span className="font-extrabold">WOUTER</span>
         <AnimatePresence mode="wait">
