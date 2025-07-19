@@ -4,7 +4,6 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'downloads.wouter.photo',
-  description: 'Download your images',
 }
 
 export default function RootLayout({
@@ -13,8 +12,10 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="nl">
+      <body>
+        {children}
+      </body>
     </html>
   )
 }
