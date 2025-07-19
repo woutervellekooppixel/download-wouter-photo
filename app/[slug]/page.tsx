@@ -61,11 +61,11 @@ export default async function Page({
     : "/hero.jpg";
 
   return (
-    <div className="min-h-screen bg-black text-white pt-20">
+    <div className="bg-black text-white">
       <Header />
 
       <div
-        className="relative min-h-[calc(100vh-80px)] w-full bg-cover bg-center flex items-center justify-center"
+        className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: `url('${heroImageUrl}')` }}
       >
         <div className="absolute inset-0 bg-black/50 z-0" />
