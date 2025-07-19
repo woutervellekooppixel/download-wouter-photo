@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import Header from "@/components/Header";
 import DownloadCard from "@/components/DownloadCard";
 import { transformToDirectLink } from "@/scripts/transformToDirectLink";
-import type { JSX } from "react"; // ✅ Voeg deze regel toe
+import type { JSX } from "react";
 
 type DownloadInfo = {
   title: string;
@@ -15,6 +15,7 @@ type DownloadInfo = {
   heroImage?: string;
 };
 
+// Metadata voor browser-tab en SEO
 export async function generateMetadata({
   params,
 }: {
@@ -34,6 +35,7 @@ export async function generateMetadata({
   };
 }
 
+// Alle beschikbare pagina's (slugs) genereren op build
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const filePath = path.join(process.cwd(), "public", "data.json");
   const jsonData = await fs.readFile(filePath, "utf-8");
@@ -42,6 +44,7 @@ export async function generateStaticParams(): Promise<{ slug: string }[]> {
   return Object.keys(data).map((slug) => ({ slug }));
 }
 
+// De downloadpagina zelf
 export default async function Page({
   params,
 }: {
@@ -62,17 +65,26 @@ export default async function Page({
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
+      {/* Header (optioneel met achtergrond transparantie aanpassen in Header.tsx) */}
       <Header />
+
+      {/* Hero achtergrond met overlay */}
       <div
-        className="flex-1 flex items-center justify-center bg-cover bg-center"
+        className="relative grow flex items-center justify-center bg-cover bg-center"
         style={{ backgroundImage: `url('${heroImageUrl}')` }}
       >
-        <DownloadCard
-          title={title}
-          client={client}
-          date={date}
-          downloadUrl={transformedUrl}
-        />
+        {/* Donkere overlay voor leesbaarheid */}
+        <div className="absolute inset-0 bg-black/50 z-0" />
+
+        {/* DownloadCard gecentreerd */}
+        <div className="relative z-10 flex items-center justify-center w-full h-full">
+          <DownloadCard
+            title={title}
+            client={client}
+            date={date}
+            downloadUrl={transformedUrl}
+          />
+        </div>
       </div>
     </div>
   );
