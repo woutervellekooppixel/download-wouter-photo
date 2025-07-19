@@ -16,7 +16,6 @@ type DownloadInfo = {
   heroImage?: string;
 };
 
-// ✅ Metadata functie
 export async function generateMetadata({
   params,
 }: {
@@ -36,7 +35,6 @@ export async function generateMetadata({
   };
 }
 
-// ✅ Static params functie
 export async function generateStaticParams() {
   const filePath = path.join(process.cwd(), "public", "data.json");
   const jsonData = await fs.readFile(filePath, "utf-8");
@@ -45,7 +43,6 @@ export async function generateStaticParams() {
   return Object.keys(data).map((slug) => ({ slug }));
 }
 
-// ✅ Page component
 export default async function DownloadPage({
   params,
 }: {
