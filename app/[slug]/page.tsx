@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import Header from "@/components/Header";
 import DownloadCard from "@/components/DownloadCard";
 import { transformToDirectLink } from "@/scripts/transformToDirectLink";
+import type { Metadata } from "next";
 
 type DownloadInfo = {
   title: string;
@@ -15,6 +16,36 @@ type DownloadInfo = {
   heroImage?: string;
 };
 
+// ✅ Metadata functie
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const filePath = path.join(process.cwd(), "public", "data.json");
+  const jsonData = await fs.readFile(filePath, "utf-8");
+  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+
+  const download = data[params.slug];
+  if (!download) {
+    return { title: "downloads.wouter.photo" };
+  }
+
+  return {
+    title: `${download.title} | downloads.wouter.photo`,
+  };
+}
+
+// ✅ Static params functie
+export async function generateStaticParams() {
+  const filePath = path.join(process.cwd(), "public", "data.json");
+  const jsonData = await fs.readFile(filePath, "utf-8");
+  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+
+  return Object.keys(data).map((slug) => ({ slug }));
+}
+
+// ✅ Page component
 export default async function DownloadPage({
   params,
 }: {
