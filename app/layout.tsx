@@ -1,21 +1,15 @@
-// app/layout.tsx
 import './globals.css'
 import type { Metadata } from 'next'
-import '../tailwind.css';
-
+import { ReactNode } from 'react'
 
 export const metadata: Metadata = {
-  title: 'downloads.wouter.photo',
-  description: 'Download jouw fotos snel',
+  title: 'My Next.js App',
+  description: 'Generated with Tailwind CSS v3',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="nl">
+    <html lang="en">
       <body>{children}</body>
     </html>
   )
