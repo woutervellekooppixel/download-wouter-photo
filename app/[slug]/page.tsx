@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 import Header from "@/components/Header";
 import DownloadCard from "@/components/DownloadCard";
 import { transformToDirectLink } from "@/scripts/transformToDirectLink";
-
+import type { JSX } from "react"; // ✅ Voeg deze regel toe
 
 type DownloadInfo = {
   title: string;
