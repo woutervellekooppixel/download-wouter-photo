@@ -1,7 +1,5 @@
 import { redirect } from 'next/navigation';
 
-// ...
-
-if (!download) {
+export default function Home() {
   redirect('https://wouter.photo');
 }
