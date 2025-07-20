@@ -17,8 +17,6 @@ export async function POST(request: Request) {
 
   data[newEntry.slug] = {
     title: newEntry.title,
-    client: newEntry.client,
-    date: newEntry.date,
     downloadUrl: newEntry.downloadUrl,
     heroImage: newEntry.heroImage,
   };
