@@ -22,7 +22,7 @@ export default function BeheerPage() {
   });
 
   useEffect(() => {
-    fetch('/data/data.json')
+    fetch('/api/downloads')
       .then((res) => res.json())
       .then(setDownloads);
   }, []);
