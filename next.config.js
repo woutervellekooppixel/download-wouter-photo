@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  /* config options here */
+  // zet hier al je opties
+  reactStrictMode: true, // bijvoorbeeld
+  experimental: {
+    appDir: true,
+  },
+  // geen 'matcher' hier! die hoort in middleware.ts
 };
 
 module.exports = nextConfig;
-
-module.exports = {
-  matcher: ['/', '/:path*'],
-};
