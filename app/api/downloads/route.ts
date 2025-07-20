@@ -4,13 +4,17 @@ import fs from "fs/promises";
 
 const filePath = path.join(process.cwd(), "app", "data", "data.json");
 
+export async function GET() {
+  const jsonData = await fs.readFile(filePath, "utf-8");
+  const data = JSON.parse(jsonData);
+  return NextResponse.json(data);
+}
+
 export async function POST(request: Request) {
   const newEntry = await request.json();
-
   const jsonData = await fs.readFile(filePath, "utf-8");
   const data = JSON.parse(jsonData);
 
-  // Voeg toe met slug als key
   data[newEntry.slug] = {
     title: newEntry.title,
     client: newEntry.client,
