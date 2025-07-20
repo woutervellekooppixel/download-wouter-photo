@@ -72,7 +72,7 @@ export default async function Page({
         className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: `url('${heroImageUrl}')` }}
       >
-        <div className="absolute inset-0 bg-black/50 z-0" />
+        <div className="absolute inset-0 bg-black/10 z-0" />
         <div className="relative z-10 flex items-center justify-center w-full h-full">
           <DownloadCard
             title={title}
