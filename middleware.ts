@@ -3,26 +3,22 @@ import type { NextRequest } from 'next/server';
 
 const protectedPaths = ['/beheer', '/api/add', '/api/update', '/api/delete'];
 
-export function middleware(request: NextRequest) {
-  const basicAuth = request.headers.get('authorization');
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
-  if (protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))) {
-    if (basicAuth) {
-      const authValue = basicAuth.split(' ')[1];
-      const [user, pwd] = atob(authValue).split(':');
+  const isProtected = protectedPaths.some(path => pathname.startsWith(path));
+  const cookie = req.cookies.get('auth')?.value;
 
-      if (pwd === process.env.BEHEER_PASSWORD) {
-        return NextResponse.next();
-      }
-    }
-
-    return new Response('Authentication required', {
-      status: 401,
-      headers: {
-        'WWW-Authenticate': 'Basic realm="Beheer"',
-      },
-    });
+  if (isProtected && cookie !== process.env.LOGIN_PASSWORD) {
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = '/login';
+    loginUrl.searchParams.set('from', pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
 }
+
+export const config = {
+  matcher: ['/beheer', '/api/(add|update|delete)'],
+};
