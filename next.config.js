@@ -8,3 +8,9 @@ module.exports = nextConfig;
 module.exports = {
   matcher: ['/', '/:path*'],
 };
+
+module.exports = {
+  experimental: {
+    middleware: true,
+  },
+};
