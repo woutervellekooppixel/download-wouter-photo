@@ -20,7 +20,7 @@ export async function generateMetadata({
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const filePath = path.join(process.cwd(), "public", "data.json");
+  const filePath = path.join(process.cwd(), "data", "data.json");
   const jsonData = await fs.readFile(filePath, "utf-8");
   const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
 
