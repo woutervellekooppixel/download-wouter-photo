@@ -31,30 +31,33 @@ export async function listFoldersWithFiles() {
       result.Contents.map((item) => item.Key?.split("/")[1]).filter(Boolean)
     );
 
-    for (const slug of folders) {
+    for (const maybeSlug of folders) {
+      if (!maybeSlug) continue;
+      const slug = maybeSlug;
       const prefixFull = `${prefix}${slug}/`;
       const res = await s3.send(
         new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefixFull })
       );
       const contents = res.Contents?.map((item) => item.Key).filter(Boolean) || [];
 
-      const zipFile = contents.find((f) => f && f.endsWith(".zip"));
+      const zipFile = contents.find((f) => f.endsWith(".zip"));
 
       const heroImage = contents.find((f) =>
-        f &&
-        [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
-        f.split("/").length === 2 // enkel bestand in root van slug-map
+        [".jpg", ".jpeg", ".png"].some(
+          (ext) => f?.toLowerCase().endsWith(ext)
+        ) &&
+        f.split("/").length === 2 // alleen bestanden in root van de slug-map
       );
 
       const galleryFolders: Record<string, string[]> = {};
       for (const item of contents) {
-        if (!item) continue;
-        const parts = item.split("/");
+        const parts = item!.split("/");
         if (parts.length === 3) {
           const folder = parts[1];
           const file = parts[2];
+          const fullUrl = `${PUBLIC_URL}/${item}`;
           if (!galleryFolders[folder]) galleryFolders[folder] = [];
-          galleryFolders[folder].push(`${PUBLIC_URL}/${item}`);
+          galleryFolders[folder].push(fullUrl);
         }
       }
 
