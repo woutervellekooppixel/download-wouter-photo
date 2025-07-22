@@ -38,15 +38,18 @@ export async function listFoldersWithFiles() {
       );
       const contents = res.Contents?.map((item) => item.Key).filter(Boolean) || [];
 
-      const zipFile = contents.find((f) => f.endsWith(".zip"));
+      const zipFile = contents.find((f) => f && f.endsWith(".zip"));
+
       const heroImage = contents.find((f) =>
-        [".jpg", ".jpeg", ".png"].some((ext) => f?.toLowerCase().endsWith(ext)) &&
-        !f.includes("/")
+        f &&
+        [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
+        f.split("/").length === 2 // enkel bestand in root van slug-map
       );
 
       const galleryFolders: Record<string, string[]> = {};
       for (const item of contents) {
-        const parts = item!.split("/");
+        if (!item) continue;
+        const parts = item.split("/");
         if (parts.length === 3) {
           const folder = parts[1];
           const file = parts[2];
