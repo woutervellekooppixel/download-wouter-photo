@@ -31,27 +31,28 @@ export async function listFoldersWithFiles() {
       result.Contents.map((item) => item.Key?.split("/")[1]).filter(Boolean)
     );
 
-    for (const maybeSlug of folders) {
-      if (!maybeSlug) continue;
-      const slug = maybeSlug;
+    for (const slug of folders) {
       const prefixFull = `${prefix}${slug}/`;
       const res = await s3.send(
         new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefixFull })
       );
       const contents = res.Contents?.map((item) => item.Key).filter(Boolean) || [];
 
-      const zipFile = contents.find((f) => f.endsWith(".zip"));
+      const zipFile = contents.find(
+        (f): f is string => typeof f === "string" && f.endsWith(".zip")
+      );
 
-      const heroImage = contents.find((f) =>
-        [".jpg", ".jpeg", ".png"].some(
-          (ext) => f?.toLowerCase().endsWith(ext)
-        ) &&
-        f.split("/").length === 2 // alleen bestanden in root van de slug-map
+      const heroImage = contents.find(
+        (f): f is string =>
+          typeof f === "string" &&
+          [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
+          f.split("/").length === 2 // alleen bestand in root-map
       );
 
       const galleryFolders: Record<string, string[]> = {};
       for (const item of contents) {
-        const parts = item!.split("/");
+        if (typeof item !== "string") continue;
+        const parts = item.split("/");
         if (parts.length === 3) {
           const folder = parts[1];
           const file = parts[2];
