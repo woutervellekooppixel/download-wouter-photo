@@ -28,37 +28,35 @@ export async function listFoldersWithFiles() {
     if (!result.Contents) continue;
 
     const folders = new Set(
-      result.Contents.map((item) => item.Key?.split("/")[1]).filter(Boolean)
+      result.Contents
+        .map((item) => item.Key?.split("/")[1])
+        .filter((val): val is string => typeof val === "string")
     );
 
     for (const slug of folders) {
+      if (!slug) continue;
+
       const prefixFull = `${prefix}${slug}/`;
       const res = await s3.send(
         new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefixFull })
       );
-      const contents = res.Contents?.map((item) => item.Key).filter(Boolean) || [];
 
-      const zipFile = contents.find(
-        (f): f is string => typeof f === "string" && f.endsWith(".zip")
-      );
+      const contents = res.Contents?.map((item) => item.Key).filter((val): val is string => typeof val === "string") || [];
 
-      const heroImage = contents.find(
-        (f): f is string =>
-          typeof f === "string" &&
-          [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
-          f.split("/").length === 2 // alleen bestand in root-map
+      const zipFile = contents.find((f) => f.endsWith(".zip"));
+      const heroImage = contents.find((f) =>
+        [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
+        f.split("/").length === 2 // alleen het bestand in de hoofdmap (geen subfolder)
       );
 
       const galleryFolders: Record<string, string[]> = {};
       for (const item of contents) {
-        if (typeof item !== "string") continue;
         const parts = item.split("/");
         if (parts.length === 3) {
           const folder = parts[1];
           const file = parts[2];
-          const fullUrl = `${PUBLIC_URL}/${item}`;
           if (!galleryFolders[folder]) galleryFolders[folder] = [];
-          galleryFolders[folder].push(fullUrl);
+          galleryFolders[folder].push(`${PUBLIC_URL}/${item}`);
         }
       }
 
