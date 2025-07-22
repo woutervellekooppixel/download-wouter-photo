@@ -1,20 +1,24 @@
 import fs from "fs/promises";
 import path from "path";
-import { redirect } from "next/navigation"; // <-- aangepast
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import DownloadCard from "@/components/DownloadCard";
+import GallerySection from "@/components/GallerySection";
 import { transformToDirectLink } from "@/scripts/transformToDirectLink";
 import type { JSX } from "react";
 
-type DownloadInfo = {
+// 👇 Types
+export type DownloadInfo = {
   title: string;
   client: string;
   date: string;
   downloadUrl: string;
   heroImage?: string;
+  gallery?: Record<string, string[]>; // folderName -> [imagePaths]
 };
 
+// 👇 Metadata voor SEO
 export async function generateMetadata({
   params,
 }: {
@@ -25,23 +29,19 @@ export async function generateMetadata({
   const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
 
   const download = data[params.slug];
-  if (!download) {
-    return { title: "downloads.wouter.photo" };
-  }
-
-  return {
-    title: `${download.title} | downloads.wouter.photo`,
-  };
+  if (!download) return { title: "downloads.wouter.photo" };
+  return { title: `${download.title} | downloads.wouter.photo` };
 }
 
+// 👇 Slug genereren voor static pages
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
   const filePath = path.join(process.cwd(), "public", "data.json");
   const jsonData = await fs.readFile(filePath, "utf-8");
   const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
-
   return Object.keys(data).map((slug) => ({ slug }));
 }
 
+// 👇 Hoofdpagina per download
 export default async function Page({
   params,
 }: {
@@ -50,15 +50,11 @@ export default async function Page({
   const filePath = path.join(process.cwd(), "public", "data.json");
   const jsonData = await fs.readFile(filePath, "utf-8");
   const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
-
   const download = data[params.slug];
 
-  // ✅ Redirect als slug niet bestaat
-  if (!download) {
-    redirect("https://wouter.photo");
-  }
+  if (!download) redirect("https://wouter.photo");
 
-  const { title, client, date, downloadUrl, heroImage } = download;
+  const { title, client, date, downloadUrl, heroImage, gallery } = download;
   const transformedUrl = transformToDirectLink(downloadUrl);
   const heroImageUrl = heroImage
     ? transformToDirectLink(heroImage)
@@ -68,6 +64,7 @@ export default async function Page({
     <div className="bg-black text-white">
       <Header />
 
+      {/* Hero Background */}
       <div
         className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: `url('${heroImageUrl}')` }}
@@ -82,6 +79,19 @@ export default async function Page({
           />
         </div>
       </div>
+
+      {/* Gallery */}
+      {gallery && (
+        <div className="max-w-6xl mx-auto px-4 py-12">
+          {Object.entries(gallery).map(([folderName, imageUrls]) => (
+            <GallerySection
+              key={folderName}
+              title={folderName.replace(/_/g, " ")}
+              images={imageUrls.map(transformToDirectLink)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
