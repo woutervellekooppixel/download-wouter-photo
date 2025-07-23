@@ -1,7 +1,6 @@
 // scripts/r2.ts
 
 import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
-import path from "path";
 
 const s3 = new S3Client({
   region: "auto",
@@ -13,6 +12,7 @@ const s3 = new S3Client({
 });
 
 const BUCKET = process.env.R2_BUCKET || "";
+const PUBLIC_URL = "https://cdn.wouter.photo";
 
 function formatTitle(name: string) {
   return name.replace(/[-_]/g, " ").replace(/\.(jpg|jpeg|png|zip)$/i, "").trim();
@@ -27,13 +27,11 @@ async function listFiles(prefix: string): Promise<string[]> {
 }
 
 export async function generateDataFromR2() {
-  const PUBLIC_URL = "https://cdn.wouter.photo";
   const basePrefixes = ["photos/", "files/"];
   const downloads: Record<string, any> = {};
 
   for (const basePrefix of basePrefixes) {
     const rootItems = await listFiles(basePrefix);
-
     const folders = Array.from(
       new Set(rootItems.map((key) => key.split("/")[1]).filter(Boolean))
     );
@@ -46,20 +44,27 @@ export async function generateDataFromR2() {
       const heroImage = allKeys.find(
         (f) =>
           [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
-          f.split("/").length === 2 // direct in de slug-map
+          f.split("/").length === 2
       );
 
-      // Gallery-secties detecteren (alleen bij 'photos/')
       const gallery: Record<string, string[]> = {};
-      if (basePrefix === "photos/") {
-        for (const key of allKeys) {
-          const parts = key.split("/");
-          if (parts.length === 3) {
-            const folder = formatTitle(parts[1]);
-            if (!gallery[folder]) gallery[folder] = [];
-            gallery[folder].push(`${PUBLIC_URL}/${key}`);
-          }
-        }
+
+      // Voeg alle subfolders toe als gallery-sectie
+      const subfolders = new Set(
+        allKeys
+          .map((key) => {
+            const parts = key.split("/");
+            return parts.length >= 3 ? parts[2].split("/")[0] : null;
+          })
+          .filter(Boolean)
+      );
+
+      for (const folder of subfolders) {
+        const sectionTitle = formatTitle(folder);
+        gallery[sectionTitle] = allKeys
+          .filter((key) => key.includes(`/${folder}/`))
+          .filter((key) => /\.(jpg|jpeg|png)$/i.test(key))
+          .map((key) => `${PUBLIC_URL}/${key}`);
       }
 
       downloads[slug] = {
