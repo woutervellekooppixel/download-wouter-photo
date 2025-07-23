@@ -1,6 +1,6 @@
 import { basicAuthCheck } from "@/lib/auth";
 import { generateDataFromR2 } from "@/scripts/r2"; // jouw parser
-import { uploadToR2 } from "@/lib/r2-upload";      // zojuist aangemaakt
+import { uploadToR2 } from "@/scripts/r2-upload";      // zojuist aangemaakt
 
 export async function POST(request: Request) {
   if (!basicAuthCheck(request)) {
