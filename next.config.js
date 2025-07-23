@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // jouw config hier, of gewoon leeg
+  /* config options here */
 };
 
-export default nextConfig;
+module.exports = nextConfig;
+
+module.exports = {
+  matcher: ['/', '/:path*'],
+};
