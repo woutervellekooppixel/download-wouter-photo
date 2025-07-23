@@ -1,16 +1,15 @@
 {
-  "Foto’s van [Eventnaam] – [Datum].emltpl": {
-    "title": "Foto’s van [Eventnaam] – [Datum].emltpl",
-    "gallery": {}
-  },
   "2024-12-28_Nick-Schilder": {
     "title": "2024 12 28 Nick Schilder",
-    "downloadUrl": "https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/photos/2024-12-28_Nick-Schilder/2024-12-28_Nick-Schilder.zip",
+    "downloadUrl": "https://cdn.wouter.photo/photos/2024-12-28_Nick-Schilder/2024-12-28_Nick-Schilder.zip",
     "gallery": {
       "2024 12 28 Nick Schilder": [
-        "https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/photos/2024-12-28_Nick-Schilder/2024-12-28_Nick-Schilder.zip",
-        "https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/photos/2024-12-28_Nick-Schilder/20241228-2024-12-28_20-41-18_Nick-Schilder_Wouter-Vellekoop-2.jpg"
+        "https://cdn.wouter.photo/photos/2024-12-28_Nick-Schilder/2024-12-28_Nick-Schilder.zip",
+        "https://cdn.wouter.photo/photos/2024-12-28_Nick-Schilder/hero.jpg"
       ]
     }
+  },
+  "Foto’s van [Eventnaam] – [Datum].emltpl": {
+    "title": "Foto’s van [Eventnaam] – [Datum].emltpl"
   }
 }

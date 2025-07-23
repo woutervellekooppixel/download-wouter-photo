@@ -1,6 +1,7 @@
 // scripts/r2.ts
 
 import { S3Client, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import path from "path";
 
 const s3 = new S3Client({
   region: "auto",
@@ -12,51 +13,52 @@ const s3 = new S3Client({
 });
 
 const BUCKET = process.env.R2_BUCKET || "";
-const PUBLIC_URL = process.env.R2_PUBLIC_URL || "";
 
 function formatTitle(name: string) {
   return name.replace(/[-_]/g, " ").replace(/\.(jpg|jpeg|png|zip)$/i, "").trim();
 }
 
-export async function listFoldersWithFiles() {
-  const basePrefixes = ["files/", "photos/"];
+async function listFiles(prefix: string): Promise<string[]> {
+  const command = new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefix });
+  const result = await s3.send(command);
+  return (
+    result.Contents?.map((item) => item.Key).filter((key): key is string => Boolean(key)) || []
+  );
+}
+
+export async function generateDataFromR2() {
+  const PUBLIC_URL = "https://cdn.wouter.photo";
+  const basePrefixes = ["photos/", "files/"];
   const downloads: Record<string, any> = {};
 
-  for (const prefix of basePrefixes) {
-    const listCommand = new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefix });
-    const result = await s3.send(listCommand);
-    if (!result.Contents) continue;
+  for (const basePrefix of basePrefixes) {
+    const rootItems = await listFiles(basePrefix);
 
-    const folders = new Set(
-      result.Contents
-        .map((item) => item.Key?.split("/")[1])
-        .filter((val): val is string => typeof val === "string")
+    const folders = Array.from(
+      new Set(rootItems.map((key) => key.split("/")[1]).filter(Boolean))
     );
 
     for (const slug of folders) {
-      if (!slug) continue;
+      const fullPrefix = `${basePrefix}${slug}/`;
+      const allKeys = await listFiles(fullPrefix);
 
-      const prefixFull = `${prefix}${slug}/`;
-      const res = await s3.send(
-        new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefixFull })
+      const zipFile = allKeys.find((f) => f.endsWith(".zip"));
+      const heroImage = allKeys.find(
+        (f) =>
+          [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
+          f.split("/").length === 2 // direct in de slug-map
       );
 
-      const contents = res.Contents?.map((item) => item.Key).filter((val): val is string => typeof val === "string") || [];
-
-      const zipFile = contents.find((f) => f.endsWith(".zip"));
-      const heroImage = contents.find((f) =>
-        [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
-        f.split("/").length === 2 // alleen het bestand in de hoofdmap (geen subfolder)
-      );
-
-      const galleryFolders: Record<string, string[]> = {};
-      for (const item of contents) {
-        const parts = item.split("/");
-        if (parts.length === 3) {
-          const folder = parts[1];
-          const file = parts[2];
-          if (!galleryFolders[folder]) galleryFolders[folder] = [];
-          galleryFolders[folder].push(`${PUBLIC_URL}/${item}`);
+      // Gallery-secties detecteren (alleen bij 'photos/')
+      const gallery: Record<string, string[]> = {};
+      if (basePrefix === "photos/") {
+        for (const key of allKeys) {
+          const parts = key.split("/");
+          if (parts.length === 3) {
+            const folder = formatTitle(parts[1]);
+            if (!gallery[folder]) gallery[folder] = [];
+            gallery[folder].push(`${PUBLIC_URL}/${key}`);
+          }
         }
       }
 
@@ -64,12 +66,7 @@ export async function listFoldersWithFiles() {
         title: formatTitle(slug),
         downloadUrl: zipFile ? `${PUBLIC_URL}/${zipFile}` : undefined,
         heroImage: heroImage ? `${PUBLIC_URL}/${heroImage}` : undefined,
-        gallery: Object.fromEntries(
-          Object.entries(galleryFolders).map(([folder, images]) => [
-            formatTitle(folder),
-            images,
-          ])
-        ),
+        gallery: Object.keys(gallery).length > 0 ? gallery : undefined,
       };
     }
   }

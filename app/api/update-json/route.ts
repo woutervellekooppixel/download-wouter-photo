@@ -1,25 +1,23 @@
-import { listFoldersWithFiles } from "@/scripts/r2";
+// app/api/update-json/route.ts
+
+import { basicAuthCheck } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
+import fs from "fs";
 import path from "path";
+import { generateDataFromR2 } from "@/scripts/r2"; // deze moet bestaan!
 
-console.log("🛠️ update-json aangeroepen");
+export async function POST(request: Request) {
+  if (!basicAuthCheck(request)) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
 
-export async function POST() {
   try {
-    const downloads = await listFoldersWithFiles();
-    console.log("📁 Gevonden items:", downloads);
-    console.log("📤 data.json wordt overschreven");
-
+    const data = await generateDataFromR2();
     const filePath = path.join(process.cwd(), "public", "data.json");
-    await fs.writeFile(filePath, JSON.stringify(downloads, null, 2), "utf-8");
-
-    return NextResponse.json({
-      status: "success",
-      count: Object.keys(downloads).length,
-    });
-  } catch (error) {
-    console.error("Update failed", error);
-    return NextResponse.json({ status: "error", error: String(error) }, { status: 500 });
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+    return NextResponse.json({ message: "✅ Succesvol bijgewerkt" });
+  } catch (err) {
+    console.error("Fout bij updaten van data.json:", err);
+    return new NextResponse("Fout bij verwerken", { status: 500 });
   }
 }
