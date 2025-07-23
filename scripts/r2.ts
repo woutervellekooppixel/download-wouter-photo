@@ -21,9 +21,7 @@ function formatTitle(name: string) {
 async function listFiles(prefix: string): Promise<string[]> {
   const command = new ListObjectsV2Command({ Bucket: BUCKET, Prefix: prefix });
   const result = await s3.send(command);
-  return (
-    result.Contents?.map((item) => item.Key).filter((key): key is string => Boolean(key)) || []
-  );
+  return result.Contents?.map((item) => item.Key!).filter(Boolean) || [];
 }
 
 export async function generateDataFromR2() {
@@ -31,46 +29,48 @@ export async function generateDataFromR2() {
   const downloads: Record<string, any> = {};
 
   for (const basePrefix of basePrefixes) {
-    const rootItems = await listFiles(basePrefix);
-    const folders = Array.from(
-      new Set(rootItems.map((key) => key.split("/")[1]).filter(Boolean))
-    );
+    const rootKeys = await listFiles(basePrefix);
+    const slugs = Array.from(new Set(rootKeys.map(key => key.split("/")[1]))).filter(Boolean);
 
-    for (const slug of folders) {
+    for (const slug of slugs) {
       const fullPrefix = `${basePrefix}${slug}/`;
-      const allKeys = await listFiles(fullPrefix);
+      const keys = await listFiles(fullPrefix);
 
-      const zipFile = allKeys.find((f) => f.endsWith(".zip"));
-      const heroImage = allKeys.find(
-        (f) =>
-          [".jpg", ".jpeg", ".png"].some((ext) => f.toLowerCase().endsWith(ext)) &&
-          f.split("/").length === 2
-      );
-
+      let zipFile: string | undefined;
+      let heroImage: string | undefined;
       const gallery: Record<string, string[]> = {};
 
-      // Voeg alle subfolders toe als gallery-sectie
-const subfolders = new Set<string>(
-  allKeys
-    .map((key) => {
-      const parts = key.split("/");
-      return parts.length >= 3 ? parts[2].split("/")[0] : null;
-    })
-    .filter((folder): folder is string => typeof folder === "string")
-);
+      for (const key of keys) {
+        const relativePath = key.replace(fullPrefix, "");
+        const url = `${PUBLIC_URL}/${key}`;
 
-      for (const folder of subfolders) {
-        const sectionTitle = formatTitle(folder);
-        gallery[sectionTitle] = allKeys
-          .filter((key) => key.includes(`/${folder}/`))
-          .filter((key) => /\.(jpg|jpeg|png)$/i.test(key))
-          .map((key) => `${PUBLIC_URL}/${key}`);
+        // ZIP-bestand detecteren (alleen in hoofdmap)
+        if (relativePath.endsWith(".zip") && !relativePath.includes("/")) {
+          zipFile = url;
+        }
+
+        // Hero image detecteren (alleen in hoofdmap)
+        if (
+          !heroImage &&
+          [".jpg", ".jpeg", ".png"].some(ext => relativePath.toLowerCase().endsWith(ext)) &&
+          !relativePath.includes("/")
+        ) {
+          heroImage = url;
+        }
+
+        // Submappen voor gallery-secties
+        const parts = relativePath.split("/");
+        if (parts.length >= 2 && [".jpg", ".jpeg", ".png"].some(ext => parts[1].toLowerCase().endsWith(ext))) {
+          const folderName = formatTitle(parts[0]);
+          if (!gallery[folderName]) gallery[folderName] = [];
+          gallery[folderName].push(url);
+        }
       }
 
       downloads[slug] = {
         title: formatTitle(slug),
-        downloadUrl: zipFile ? `${PUBLIC_URL}/${zipFile}` : undefined,
-        heroImage: heroImage ? `${PUBLIC_URL}/${heroImage}` : undefined,
+        downloadUrl: zipFile,
+        heroImage,
         gallery: Object.keys(gallery).length > 0 ? gallery : undefined,
       };
     }
