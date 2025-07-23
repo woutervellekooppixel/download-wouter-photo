@@ -50,14 +50,14 @@ export async function generateDataFromR2() {
       const gallery: Record<string, string[]> = {};
 
       // Voeg alle subfolders toe als gallery-sectie
-      const subfolders = new Set(
-        allKeys
-          .map((key) => {
-            const parts = key.split("/");
-            return parts.length >= 3 ? parts[2].split("/")[0] : null;
-          })
-          .filter(Boolean)
-      );
+const subfolders = new Set<string>(
+  allKeys
+    .map((key) => {
+      const parts = key.split("/");
+      return parts.length >= 3 ? parts[2].split("/")[0] : null;
+    })
+    .filter((folder): folder is string => typeof folder === "string")
+);
 
       for (const folder of subfolders) {
         const sectionTitle = formatTitle(folder);
