@@ -1,23 +1,21 @@
-// app/api/update-json/route.ts
-
 import { basicAuthCheck } from "@/lib/auth";
-import { NextResponse } from "next/server";
-import fs from "fs";
-import path from "path";
-import { generateDataFromR2 } from "@/scripts/r2"; // deze moet bestaan!
+import { generateDataFromR2 } from "@/scripts/r2"; // jouw parser
+import { uploadToR2 } from "@/lib/r2-upload";      // zojuist aangemaakt
 
 export async function POST(request: Request) {
   if (!basicAuthCheck(request)) {
-    return new NextResponse("Unauthorized", { status: 401 });
+    return new Response("Unauthorized", { status: 401 });
   }
 
   try {
     const data = await generateDataFromR2();
-    const filePath = path.join(process.cwd(), "public", "data.json");
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-    return NextResponse.json({ message: "✅ Succesvol bijgewerkt" });
-  } catch (err) {
-    console.error("Fout bij updaten van data.json:", err);
-    return new NextResponse("Fout bij verwerken", { status: 500 });
+    const jsonString = JSON.stringify(data, null, 2);
+
+    await uploadToR2("data.json", jsonString);
+
+    return Response.json({ message: "✅ data.json succesvol geüpload naar R2" });
+  } catch (error) {
+    console.error("Fout bij updaten van data.json:", error);
+    return new Response("Fout bij updaten van data.json", { status: 500 });
   }
 }
