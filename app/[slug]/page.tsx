@@ -1,10 +1,11 @@
-export const dynamic = "force-dynamic";
-
-import { redirect } from "next/navigation";
+import fs from "fs/promises";
+import path from "path";
+import { redirect } from "next/navigation"; // <-- aangepast
+import type { Metadata } from "next";
 import Header from "@/components/Header";
 import DownloadCard from "@/components/DownloadCard";
-import GallerySection from "@/components/GallerySection";
 import { transformToDirectLink } from "@/scripts/transformToDirectLink";
+import type { JSX } from "react";
 
 type DownloadInfo = {
   title: string;
@@ -12,30 +13,52 @@ type DownloadInfo = {
   date: string;
   downloadUrl: string;
   heroImage?: string;
-  gallery?: Record<string, string[]>;
 };
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const filePath = path.join(process.cwd(), "public", "data.json");
+  const jsonData = await fs.readFile(filePath, "utf-8");
+  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+
+  const download = data[params.slug];
+  if (!download) {
+    return { title: "downloads.wouter.photo" };
+  }
+
+  return {
+    title: `${download.title} | downloads.wouter.photo`,
+  };
+}
+
+export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  const filePath = path.join(process.cwd(), "public", "data.json");
+  const jsonData = await fs.readFile(filePath, "utf-8");
+  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+
+  return Object.keys(data).map((slug) => ({ slug }));
+}
 
 export default async function Page({
   params,
 }: {
   params: { slug: string };
-}) {
-  const DATA_URL = "https://cdn.wouter.photo/photos/data.json";
+}): Promise<JSX.Element> {
+  const filePath = path.join(process.cwd(), "public", "data.json");
+  const jsonData = await fs.readFile(filePath, "utf-8");
+  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
 
-  let data: Record<string, DownloadInfo> = {};
+  const download = data[params.slug];
 
-  try {
-    const res = await fetch(DATA_URL, { cache: "no-store" });
-    data = await res.json();
-  } catch (e) {
-    console.error("❌ Fout bij ophalen data.json:", e);
+  // ✅ Redirect als slug niet bestaat
+  if (!download) {
     redirect("https://wouter.photo");
   }
 
-  const download = data[params.slug];
-  if (!download) redirect("https://wouter.photo");
-
-  const { title, client, date, downloadUrl, heroImage, gallery } = download;
+  const { title, client, date, downloadUrl, heroImage } = download;
   const transformedUrl = transformToDirectLink(downloadUrl);
   const heroImageUrl = heroImage
     ? transformToDirectLink(heroImage)
@@ -59,18 +82,6 @@ export default async function Page({
           />
         </div>
       </div>
-
-      {gallery && (
-        <div className="max-w-6xl mx-auto px-4 py-12">
-          {Object.entries(gallery).map(([folderName, imageUrls]) => (
-            <GallerySection
-              key={folderName}
-              title={folderName.replace(/_/g, " ")}
-              images={imageUrls.map(transformToDirectLink)}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

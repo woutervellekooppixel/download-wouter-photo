@@ -28,30 +28,21 @@ export default function BeheerPage() {
     fetchData();
   }, []);
 
-const handleUpdateJson = async () => {
-  setLoading(true);
-  setMessage(null);
-  try {
-    const username = process.env.NEXT_PUBLIC_LOGIN_USERNAME || 'admin';
-    const password = process.env.NEXT_PUBLIC_LOGIN_PASSWORD || 'geheim';
-
-    const res = await fetch('/api/update-json', {
-      method: 'POST',
-      headers: {
-        Authorization: 'Basic ' + btoa(`${username}:${password}`),
-      },
-    });
-
-    if (!res.ok) throw new Error('Update mislukt');
-    const result = await res.json();
-    setMessage(result.message || '✅ data.json succesvol bijgewerkt');
-    location.reload();
-  } catch (err) {
-    setMessage('❌ Fout bij bijwerken van data.json');
-  } finally {
-    setLoading(false);
-  }
-};
+  const handleUpdateJson = async () => {
+    setLoading(true);
+    setMessage(null);
+    try {
+      const res = await fetch('/api/update-json', { method: 'POST' });
+      if (!res.ok) throw new Error('Update mislukt');
+      const result = await res.json();
+      setMessage(result.message || '✅ data.json succesvol bijgewerkt');
+      location.reload();
+    } catch (err) {
+      setMessage('❌ Fout bij bijwerken van data.json');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen bg-black text-white p-6">
