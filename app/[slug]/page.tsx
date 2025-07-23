@@ -1,5 +1,3 @@
-import fs from "fs/promises";
-import path from "path";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
@@ -18,16 +16,17 @@ export type DownloadInfo = {
   gallery?: Record<string, string[]>; // folderName -> [imagePaths]
 };
 
+// 📦 Link naar je gehoste JSON op R2
+const DATA_URL = "https://cdn.wouter.photo/photos/data.json";
+
 // 👇 Metadata voor SEO
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }): Promise<Metadata> {
-  const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = await fs.readFile(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
-
+  const res = await fetch(DATA_URL, { cache: "no-store" });
+  const data: Record<string, DownloadInfo> = await res.json();
   const download = data[params.slug];
   if (!download) return { title: "downloads.wouter.photo" };
   return { title: `${download.title} | downloads.wouter.photo` };
@@ -35,9 +34,8 @@ export async function generateMetadata({
 
 // 👇 Slug genereren voor static pages
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = await fs.readFile(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+  const res = await fetch(DATA_URL);
+  const data: Record<string, DownloadInfo> = await res.json();
   return Object.keys(data).map((slug) => ({ slug }));
 }
 
@@ -47,9 +45,8 @@ export default async function Page({
 }: {
   params: { slug: string };
 }): Promise<JSX.Element> {
-  const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = await fs.readFile(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+  const res = await fetch(DATA_URL, { cache: "no-store" });
+  const data: Record<string, DownloadInfo> = await res.json();
   const download = data[params.slug];
 
   if (!download) redirect("https://wouter.photo");
