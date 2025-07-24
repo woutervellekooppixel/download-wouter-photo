@@ -1,6 +1,8 @@
+// app/photos/[slug]/page.tsx
+
 import fs from "fs/promises";
 import path from "path";
-import { redirect } from "next/navigation"; // <-- aangepast
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import Header from "@/components/Header";
 import DownloadCard from "@/components/DownloadCard";
@@ -53,7 +55,6 @@ export default async function Page({
 
   const download = data[params.slug];
 
-  // ✅ Redirect als slug niet bestaat
   if (!download) {
     redirect("https://wouter.photo");
   }
@@ -65,11 +66,11 @@ export default async function Page({
     : "/hero.jpg";
 
   return (
-    <div className="bg-black text-white">
+    <div className="bg-black text-white h-screen overflow-hidden">
       <Header />
 
       <div
-        className="relative min-h-screen w-full bg-cover bg-center flex items-center justify-center"
+        className="relative h-screen w-full bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: `url('${heroImageUrl}')` }}
       >
         <div className="absolute inset-0 bg-black/10 z-0" />
