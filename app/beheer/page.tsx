@@ -16,13 +16,19 @@ export default function BeheerPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  // ✅ Tijdelijk hardcoded — later vervangen door process.env.NEXT_PUBLIC_JSON_URL
+const JSON_URL = '/api/get-json'
+  console.log('🌍 JSON_URL die gebruikt wordt:', JSON_URL)
+
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch('https://downloads-wouter-photo.r2.dev/data.json')
+        const res = await fetch(JSON_URL)
         const json = await res.json()
+        console.log('📦 Gelezen JSON:', json)
         setDownloads(json)
       } catch (e) {
+        console.error('⚠️ Fout bij laden JSON:', e)
         setError('⚠️ Kan huidige downloads niet laden.')
       } finally {
         setLoading(false)
@@ -76,7 +82,9 @@ export default function BeheerPage() {
       {error && <p className="text-red-500">{error}</p>}
       {success && <p className="text-green-500 mb-4">✅ data.json succesvol bijgewerkt!</p>}
 
-      {!loading && Object.keys(downloads).length === 0 && <p>❌ Geen downloads gevonden.</p>}
+      {!loading && Object.keys(downloads).length === 0 && (
+        <p>❌ Geen downloads gevonden.</p>
+      )}
 
       <ul className="space-y-4">
         {Object.entries(downloads).map(([slug, entry]) => (

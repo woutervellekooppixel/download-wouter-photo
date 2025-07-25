@@ -16,10 +16,11 @@ type PageProps = {
   params: { slug: string }
 }
 
-const JSON_URL = process.env.NEXT_PUBLIC_JSON_URL || 'https://downloads-wouter-photo.r2.dev/data.json'
+// ✅ Hardcoded werkende JSON URL (Cloudflare R2 public link)
+const JSON_URL = 'https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/data.json'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const res = await fetch(JSON_URL, { next: { revalidate: 10 } }) // 10s cache
+  const res = await fetch(JSON_URL, { next: { revalidate: 10 } }) // cache 10s
   const data: Record<string, DownloadInfo> = await res.json()
   const download = data[params.slug]
 

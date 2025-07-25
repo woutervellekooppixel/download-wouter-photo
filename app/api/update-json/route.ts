@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { S3Client, ListObjectsV2Command, PutObjectCommand } from '@aws-sdk/client-s3'
+import {
+  S3Client,
+  ListObjectsV2Command,
+  PutObjectCommand,
+} from '@aws-sdk/client-s3'
 
 const {
   R2_ACCESS_KEY_ID,
@@ -24,26 +28,31 @@ function toTitle(str: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const overrides = await req.json() // bijv. { "slug": { title: "...", hasGallery: true } }
+    const overrides = await req.json()
+    console.log('⬇️ Ontvangen overrides:', overrides)
 
-    // 1. Haal alle rootfolders in de bucket op (één map per download)
+    // 📁 Eerst: lees alle folders onder /photos/
     const list = await r2.send(
       new ListObjectsV2Command({
         Bucket: R2_BUCKET_NAME!,
+        Prefix: 'photos/',
         Delimiter: '/',
       })
     )
 
     const prefixes = list.CommonPrefixes || []
+    console.log('📂 Folders gevonden in photos/:', prefixes.map((p) => p.Prefix))
+
     const data: Record<string, any> = {}
 
     for (const prefix of prefixes) {
-      const slug = prefix.Prefix!.replace(/\/$/, '')
+      const slug = prefix.Prefix!.replace(/^photos\/|\/$/g, '') // haal 'photos/' en trailing slash weg
+      console.log(`🔍 Verwerk: ${slug}`)
 
       const contents = await r2.send(
         new ListObjectsV2Command({
           Bucket: R2_BUCKET_NAME!,
-          Prefix: `${slug}/`,
+          Prefix: `photos/${slug}/`,
         })
       )
 
@@ -52,12 +61,15 @@ export async function POST(req: NextRequest) {
       const zip = files.find((f) => f.endsWith('.zip'))
       const jpg = files.find((f) => f.toLowerCase().endsWith('.jpg'))
 
-      if (!zip || !jpg) continue
+      if (!zip || !jpg) {
+        console.warn(`⛔ Map ${slug} overgeslagen — zip of jpg ontbreekt`)
+        continue
+      }
 
       const subfolders = new Set<string>()
       contents.Contents?.forEach((obj) => {
         const parts = obj.Key!.split('/')
-        if (parts.length === 3) subfolders.add(parts[1])
+        if (parts.length === 4) subfolders.add(parts[2])
       })
 
       const hasGallery = subfolders.size > 0
@@ -66,13 +78,14 @@ export async function POST(req: NextRequest) {
 
       data[slug] = {
         title,
-        downloadUrl: `https://cdn.wouter.photo/${slug}/${zip}`,
-        heroImage: `https://cdn.wouter.photo/${slug}/${jpg}`,
+        downloadUrl: `https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/photos/${slug}/${zip}`,
+        heroImage: `https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/photos/${slug}/${jpg}`,
         ...(finalHasGallery && { hasGallery: true }),
       }
+
+      console.log(`✅ Toegevoegd: ${slug}`)
     }
 
-    // 2. Upload data.json naar root van bucket
     const jsonString = JSON.stringify(data, null, 2)
 
     await r2.send(
@@ -84,9 +97,17 @@ export async function POST(req: NextRequest) {
       })
     )
 
-    return NextResponse.json({ success: true, count: Object.keys(data).length })
+    console.log('📤 data.json succesvol geüpload met', Object.keys(data).length, 'entries')
+
+    return NextResponse.json({
+      success: true,
+      count: Object.keys(data).length,
+    })
   } catch (e) {
-    console.error('❌ Fout bij updaten JSON', e)
-    return NextResponse.json({ success: false, error: (e as Error).message }, { status: 500 })
+    console.error('❌ Fout in /api/update-json:', e)
+    return NextResponse.json(
+      { success: false, error: (e as Error).message },
+      { status: 500 }
+    )
   }
 }
