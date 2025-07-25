@@ -1,69 +1,52 @@
-// app/photos/[slug]/page.tsx
-
-import fs from "fs/promises";
-import path from "path";
-import { redirect } from "next/navigation";
-import type { Metadata } from "next";
-import Header from "@/components/Header";
-import DownloadCard from "@/components/DownloadCard";
-import { transformToDirectLink } from "@/scripts/transformToDirectLink";
-import type { JSX } from "react";
+import { redirect } from 'next/navigation'
+import type { Metadata } from 'next'
+import Header from '@/components/Header'
+import DownloadCard from '@/components/DownloadCard'
+import { transformToDirectLink } from '@/scripts/transformToDirectLink'
+import type { JSX } from 'react'
 
 type DownloadInfo = {
-  title: string;
-  client: string;
-  date: string;
-  downloadUrl: string;
-  heroImage?: string;
-};
+  title: string
+  downloadUrl: string
+  heroImage?: string
+  hasGallery?: boolean
+}
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
-  const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = await fs.readFile(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+type PageProps = {
+  params: { slug: string }
+}
 
-  const download = data[params.slug];
-  if (!download) {
-    return { title: "downloads.wouter.photo" };
-  }
+const JSON_URL = process.env.NEXT_PUBLIC_JSON_URL || 'https://downloads-wouter-photo.r2.dev/data.json'
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const res = await fetch(JSON_URL, { next: { revalidate: 10 } }) // 10s cache
+  const data: Record<string, DownloadInfo> = await res.json()
+  const download = data[params.slug]
 
   return {
-    title: `${download.title} | downloads.wouter.photo`,
-  };
+    title: download ? `${download.title} | downloads.wouter.photo` : 'downloads.wouter.photo',
+  }
 }
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = await fs.readFile(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
+  const res = await fetch(JSON_URL, { next: { revalidate: 10 } })
+  const data: Record<string, DownloadInfo> = await res.json()
 
-  return Object.keys(data).map((slug) => ({ slug }));
+  return Object.keys(data).map((slug) => ({ slug }))
 }
 
-export default async function Page({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<JSX.Element> {
-  const filePath = path.join(process.cwd(), "public", "data.json");
-  const jsonData = await fs.readFile(filePath, "utf-8");
-  const data: Record<string, DownloadInfo> = JSON.parse(jsonData);
-
-  const download = data[params.slug];
+export default async function Page({ params }: PageProps): Promise<JSX.Element> {
+  const res = await fetch(JSON_URL, { next: { revalidate: 10 } })
+  const data: Record<string, DownloadInfo> = await res.json()
+  const download = data[params.slug]
 
   if (!download) {
-    redirect("https://wouter.photo");
+    redirect('https://wouter.photo')
   }
 
-  const { title, client, date, downloadUrl, heroImage } = download;
-  const transformedUrl = transformToDirectLink(downloadUrl);
-  const heroImageUrl = heroImage
-    ? transformToDirectLink(heroImage)
-    : "/hero.jpg";
+  const { title, downloadUrl, heroImage } = download
+  const transformedUrl = transformToDirectLink(downloadUrl)
+  const heroImageUrl = heroImage ? transformToDirectLink(heroImage) : '/hero.jpg'
 
   return (
     <div className="bg-black text-white h-screen overflow-hidden">
@@ -75,14 +58,9 @@ export default async function Page({
       >
         <div className="absolute inset-0 bg-black/10 z-0" />
         <div className="relative z-10 flex items-center justify-center w-full h-full">
-          <DownloadCard
-            title={title}
-            client={client}
-            date={date}
-            downloadUrl={transformedUrl}
-          />
+          <DownloadCard title={title} downloadUrl={transformedUrl} />
         </div>
       </div>
     </div>
-  );
+  )
 }
