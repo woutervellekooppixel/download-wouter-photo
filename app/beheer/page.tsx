@@ -24,7 +24,7 @@ export default function BeheerPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await fetch(`${JSON_URL}?cb=${Date.now()}`)
+        const JSON_URL = `/api/get-json?cb=${Date.now()}`
         const json = await res.json()
         console.log('📦 Gelezen JSON:', json)
         setDownloads(json)
