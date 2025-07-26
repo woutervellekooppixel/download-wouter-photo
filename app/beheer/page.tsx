@@ -17,28 +17,27 @@ export default function BeheerPage() {
   const [success, setSuccess] = useState(false)
   const [regenerating, setRegenerating] = useState(false)
 
-  // ✅ Tijdelijk hardcoded — later vervangen door process.env.NEXT_PUBLIC_JSON_URL
   const JSON_URL = '/api/get-json'
   console.log('🌍 JSON_URL die gebruikt wordt:', JSON_URL)
 
-useEffect(() => {
-  const loadData = async () => {
-    try {
-      const JSON_URL = `/api/get-json?cb=${Date.now()}`
-      const res = await fetch(JSON_URL)
-      const json = await res.json()
-      console.log('📦 Gelezen JSON:', json)
-      setDownloads(json)
-    } catch (e) {
-      console.error('⚠️ Fout bij laden JSON:', e)
-      setError('⚠️ Kan huidige downloads niet laden.')
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const JSON_URL = `/api/get-json?cb=${Date.now()}`
+        const res = await fetch(JSON_URL)
+        const json = await res.json()
+        console.log('📦 Gelezen JSON:', json)
+        setDownloads(json)
+      } catch (e) {
+        console.error('⚠️ Fout bij laden JSON:', e)
+        setError('⚠️ Kan huidige downloads niet laden.')
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
-  loadData()
-}, [])
+    loadData()
+  }, [])
 
   const handleUpdate = async () => {
     setSaving(true)
@@ -53,7 +52,6 @@ useEffect(() => {
       })
 
       const result = await response.json()
-
       if (!result.success) {
         throw new Error(result.error || 'Onbekende fout')
       }
@@ -96,6 +94,34 @@ useEffect(() => {
     }
   }
 
+  const handleDelete = async (slug: string) => {
+    if (!confirm(`Weet je zeker dat je "${slug}" wilt verwijderen?`)) return
+
+    setSaving(true)
+    setError(null)
+    setSuccess(false)
+
+    try {
+      const res = await fetch('/api/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      })
+
+      const result = await res.json()
+      if (!result.success) throw new Error(result.error || 'Onbekende fout')
+
+      const updated = { ...downloads }
+      delete updated[slug]
+      setDownloads(updated)
+      setSuccess(true)
+    } catch (e: any) {
+      setError('❌ Verwijderen mislukt: ' + e.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const updateEntry = (slug: string, field: keyof DownloadEntry, value: any) => {
     setDownloads((prev) => ({
       ...prev,
@@ -112,7 +138,7 @@ useEffect(() => {
 
       {loading && <p>Laden...</p>}
       {error && <p className="text-red-500">{error}</p>}
-      {success && <p className="text-green-500 mb-4">✅ data.json succesvol bijgewerkt!</p>}
+      {success && <p className="text-green-500 mb-4">✅ Actie succesvol uitgevoerd!</p>}
 
       <div className="flex gap-4 flex-wrap mb-6">
         <button
@@ -166,6 +192,13 @@ useEffect(() => {
               >
                 🔗 Bekijk
               </a>
+
+              <button
+                onClick={() => handleDelete(slug)}
+                className="text-sm text-red-400 hover:text-red-200"
+              >
+                ❌ Verwijder
+              </button>
             </div>
           </li>
         ))}
