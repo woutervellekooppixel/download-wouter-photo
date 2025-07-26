@@ -9,7 +9,7 @@ export default function FolderUploader() {
   const [totalFiles, setTotalFiles] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // ✅ TypeScript fix: zet webkitdirectory via JS
+  // ✅ Zet webkitdirectory via JS om TypeScript build errors te vermijden
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.setAttribute('webkitdirectory', '')
@@ -42,7 +42,7 @@ export default function FolderUploader() {
       setProgress(uploaded)
     }
 
-    // 🔄 Automatisch JSON updaten
+    // ✅ Automatisch data.json bijwerken na upload
     await fetch('/api/update-json', { method: 'POST' })
 
     alert('Upload afgerond ✅')
@@ -52,12 +52,14 @@ export default function FolderUploader() {
   return (
     <div className="border rounded p-4 mt-8">
       <h2 className="text-lg font-semibold mb-2">📂 Upload een volledige map</h2>
+
       <input
         ref={inputRef}
         type="file"
         multiple
         onChange={(e) => setFiles(e.target.files)}
       />
+
       <button
         onClick={handleUpload}
         disabled={!files || uploading}
