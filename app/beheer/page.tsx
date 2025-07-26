@@ -21,23 +21,24 @@ export default function BeheerPage() {
   const JSON_URL = '/api/get-json'
   console.log('🌍 JSON_URL die gebruikt wordt:', JSON_URL)
 
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        const JSON_URL = `/api/get-json?cb=${Date.now()}`
-        const json = await res.json()
-        console.log('📦 Gelezen JSON:', json)
-        setDownloads(json)
-      } catch (e) {
-        console.error('⚠️ Fout bij laden JSON:', e)
-        setError('⚠️ Kan huidige downloads niet laden.')
-      } finally {
-        setLoading(false)
-      }
+useEffect(() => {
+  const loadData = async () => {
+    try {
+      const JSON_URL = `/api/get-json?cb=${Date.now()}`
+      const res = await fetch(JSON_URL)
+      const json = await res.json()
+      console.log('📦 Gelezen JSON:', json)
+      setDownloads(json)
+    } catch (e) {
+      console.error('⚠️ Fout bij laden JSON:', e)
+      setError('⚠️ Kan huidige downloads niet laden.')
+    } finally {
+      setLoading(false)
     }
+  }
 
-    loadData()
-  }, [])
+  loadData()
+}, [])
 
   const handleUpdate = async () => {
     setSaving(true)
