@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     delete downloads[slug]
 
     // 👉 Upload de aangepaste JSON terug naar R2
-    await uploadJson(downloads)
+    await uploadJson(downloads, 'data.json')
 
     // 👉 Verwijder de map in zowel /photos als /files (fallback)
     await deleteFolder(`photos/${slug}/`)
