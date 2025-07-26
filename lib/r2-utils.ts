@@ -1,4 +1,4 @@
-import { r2 } from '@lib/r2' // jouw ingestelde R2 SDK
+import { r2 } from '@/lib/r2' // jouw ingestelde R2 SDK
 
 export async function deleteFolder(prefix: string) {
   const list = await r2.listObjects({ Prefix: prefix })
