@@ -40,8 +40,7 @@ export default function GallerySection({ sectionTitle, images }: Props) {
                   />
 
                   <a
-  href={url}
-  download
+  href={`/api/download?file=${encodeURIComponent(url)}`}
   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 text-white px-2 py-1 text-xs rounded"
   title="Download afbeelding"
 >
