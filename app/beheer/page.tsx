@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import FolderUploader from '@/components/FolderUploader'
 
 type DownloadEntry = {
   title: string
@@ -203,6 +204,7 @@ export default function BeheerPage() {
           </li>
         ))}
       </ul>
+      <FolderUploader />
     </div>
   )
 }
