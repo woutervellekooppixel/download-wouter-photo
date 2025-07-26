@@ -54,11 +54,10 @@ export async function getJson(key: string) {
   )
 
   const stream = res.Body as NodeJS.ReadableStream
-  const chunks: Uint8Array[] = []
-
-  for await (const chunk of stream) {
-    chunks.push(chunk)
-  }
+const chunks: Buffer[] = []
+for await (const chunk of stream) {
+  chunks.push(Buffer.from(chunk))
+}
 
   const json = Buffer.concat(chunks).toString('utf-8')
   return JSON.parse(json)
