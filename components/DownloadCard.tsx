@@ -46,11 +46,7 @@ export default function DownloadCard({ title, downloadUrl }: Props) {
         </a>
       </div>
 
-      {/* Info */}
-      <div className="mt-4">
-        <p className="text-lg font-semibold">{client}</p>
-        <p className="text-sm text-white/70">{date}</p>
-      </div>
+      
     </div>
   )
 }
