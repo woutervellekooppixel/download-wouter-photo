@@ -8,7 +8,7 @@ type Props = {
   downloadUrl: string
 }
 
-export default function DownloadCard({ title, client, date, downloadUrl }: Props) {
+export default function DownloadCard({ title, downloadUrl }: Props) {
   const [showTooltip, setShowTooltip] = useState(false)
 
   useEffect(() => {
