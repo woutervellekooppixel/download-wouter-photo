@@ -1,26 +1,65 @@
-import { r2 } from '@/lib/r2' // jouw ingestelde R2 SDK
+// lib/r2-utils.ts
+import {
+  ListObjectsV2Command,
+  DeleteObjectCommand,
+  PutObjectCommand,
+  GetObjectCommand,
+} from '@aws-sdk/client-s3'
+import { r2 } from './r2'
+
+const BUCKET = process.env.R2_BUCKET_NAME!
+
+export async function listObjects(prefix: string) {
+  const command = new ListObjectsV2Command({
+    Bucket: BUCKET,
+    Prefix: prefix,
+  })
+
+  const response = await r2.send(command)
+  return response.Contents || []
+}
 
 export async function deleteFolder(prefix: string) {
-  const list = await r2.listObjects({ Prefix: prefix })
-  if (!list?.Contents) return
+  const objects = await listObjects(prefix)
 
-  const toDelete = list.Contents.map((obj) => ({ Key: obj.Key! }))
-  if (toDelete.length > 0) {
-    await r2.deleteObjects({ Delete: { Objects: toDelete } })
+  for (const obj of objects) {
+    if (obj.Key) {
+      await r2.send(
+        new DeleteObjectCommand({
+          Bucket: BUCKET,
+          Key: obj.Key,
+        })
+      )
+    }
   }
 }
 
-export async function getJson(): Promise<Record<string, any>> {
-  const file = await r2.getObject({ Key: 'data.json' })
-  const stream = file.Body?.transformToString()
-  return JSON.parse(await stream)
+export async function uploadJson(key: string, json: object) {
+  await r2.send(
+    new PutObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+      Body: JSON.stringify(json, null, 2),
+      ContentType: 'application/json',
+    })
+  )
 }
 
-export async function uploadJson(data: any) {
-  const json = JSON.stringify(data, null, 2)
-  await r2.putObject({
-    Key: 'data.json',
-    Body: json,
-    ContentType: 'application/json',
-  })
+export async function getJson(key: string) {
+  const res = await r2.send(
+    new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+    })
+  )
+
+  const stream = res.Body as NodeJS.ReadableStream
+  const chunks: Uint8Array[] = []
+
+  for await (const chunk of stream) {
+    chunks.push(chunk)
+  }
+
+  const json = Buffer.concat(chunks).toString('utf-8')
+  return JSON.parse(json)
 }
