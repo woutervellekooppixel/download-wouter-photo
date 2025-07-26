@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import Header from '@/components/Header'
 import DownloadCard from '@/components/DownloadCard'
+import GallerySection from '@/components/GallerySection'
 import { transformToDirectLink } from '@/scripts/transformToDirectLink'
 import type { JSX } from 'react'
 
@@ -16,11 +17,10 @@ type PageProps = {
   params: { slug: string }
 }
 
-// ✅ Hardcoded werkende JSON URL (Cloudflare R2 public link)
-const JSON_URL = 'https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/data.json'
+const DATA_URL = 'https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/data.json'
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const res = await fetch(JSON_URL, { next: { revalidate: 10 } }) // cache 10s
+  const res = await fetch(DATA_URL, { next: { revalidate: 10 } })
   const data: Record<string, DownloadInfo> = await res.json()
   const download = data[params.slug]
 
@@ -30,14 +30,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
-  const res = await fetch(JSON_URL, { next: { revalidate: 10 } })
+  const res = await fetch(DATA_URL, { next: { revalidate: 10 } })
   const data: Record<string, DownloadInfo> = await res.json()
-
   return Object.keys(data).map((slug) => ({ slug }))
 }
 
 export default async function Page({ params }: PageProps): Promise<JSX.Element> {
-  const res = await fetch(JSON_URL, { next: { revalidate: 10 } })
+  const res = await fetch(DATA_URL, { next: { revalidate: 10 } })
   const data: Record<string, DownloadInfo> = await res.json()
   const download = data[params.slug]
 
@@ -45,12 +44,27 @@ export default async function Page({ params }: PageProps): Promise<JSX.Element> 
     redirect('https://wouter.photo')
   }
 
-  const { title, downloadUrl, heroImage } = download
+  const { title, downloadUrl, heroImage, hasGallery } = download
   const transformedUrl = transformToDirectLink(downloadUrl)
   const heroImageUrl = heroImage ? transformToDirectLink(heroImage) : '/hero.jpg'
 
-  return (
-    <div className="bg-black text-white h-screen overflow-hidden">
+  // ⬇️ Optioneel: galerie ophalen
+  let galleryData: Record<string, string[]> = {}
+  if (hasGallery) {
+    const galleryRes = await fetch(
+      `https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/photos/${params.slug}/gallery.json`,
+      { next: { revalidate: 10 } }
+    )
+
+    if (galleryRes.ok) {
+      galleryData = await galleryRes.json()
+    }
+  }
+
+const hasGalleryContent = hasGallery && Object.keys(galleryData).length > 0
+
+return (
+  <div className={`bg-black text-white ${hasGalleryContent ? 'min-h-screen' : 'h-screen overflow-hidden'}`}>
       <Header />
 
       <div
@@ -62,6 +76,19 @@ export default async function Page({ params }: PageProps): Promise<JSX.Element> 
           <DownloadCard title={title} downloadUrl={transformedUrl} />
         </div>
       </div>
+
+      {/* ✅ GALLERY */}
+      {hasGallery && Object.keys(galleryData).length > 0 && (
+        <div className="px-6 py-12">
+          {Object.entries(galleryData).map(([section, urls]) => (
+            <GallerySection
+              key={section}
+              sectionTitle={section}
+              images={urls}
+            />
+          ))}
+        </div>
+      )}
     </div>
   )
 }

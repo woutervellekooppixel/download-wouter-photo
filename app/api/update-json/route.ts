@@ -56,10 +56,16 @@ export async function POST(req: NextRequest) {
         })
       )
 
-      const files = contents.Contents?.map((obj) => obj.Key!.split('/').pop()!) || []
+const filesInMainFolder =
+  contents.Contents?.filter((obj) => obj.Key!.split('/').length === 3) || []
 
-      const zip = files.find((f) => f.endsWith('.zip'))
-      const jpg = files.find((f) => f.toLowerCase().endsWith('.jpg'))
+const zip = filesInMainFolder
+  .map((obj) => obj.Key!.split('/').pop()!)
+  .find((f) => f.endsWith('.zip'))
+
+const jpg = filesInMainFolder
+  .map((obj) => obj.Key!.split('/').pop()!)
+  .find((f) => f.toLowerCase().endsWith('.jpg'))
 
       if (!zip || !jpg) {
         console.warn(`⛔ Map ${slug} overgeslagen — zip of jpg ontbreekt`)

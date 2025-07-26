@@ -15,9 +15,10 @@ export default function BeheerPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
 
   // ✅ Tijdelijk hardcoded — later vervangen door process.env.NEXT_PUBLIC_JSON_URL
-const JSON_URL = '/api/get-json'
+  const JSON_URL = '/api/get-json'
   console.log('🌍 JSON_URL die gebruikt wordt:', JSON_URL)
 
   useEffect(() => {
@@ -64,6 +65,36 @@ const JSON_URL = '/api/get-json'
     }
   }
 
+  const handleRegenerate = async () => {
+    const slug = prompt('Welke slug wil je hergenereren (bv: 2024-12-28_Nick-Schilder)?')
+    if (!slug) return
+
+    setRegenerating(true)
+    setError(null)
+    setSuccess(false)
+
+    try {
+      const res = await fetch('/api/regenerate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      })
+
+      const json = await res.json()
+
+      if (!json.success) {
+        throw new Error(json?.dataUpdated?.error || json?.galleryUpdated?.error || 'Onbekende fout')
+      }
+
+      alert(`✅ ${slug} opnieuw gegenereerd: data.json + gallery.json`)
+      setSuccess(true)
+    } catch (e: any) {
+      setError('❌ Fout bij hergenereren: ' + e.message)
+    } finally {
+      setRegenerating(false)
+    }
+  }
+
   const updateEntry = (slug: string, field: keyof DownloadEntry, value: any) => {
     setDownloads((prev) => ({
       ...prev,
@@ -81,6 +112,24 @@ const JSON_URL = '/api/get-json'
       {loading && <p>Laden...</p>}
       {error && <p className="text-red-500">{error}</p>}
       {success && <p className="text-green-500 mb-4">✅ data.json succesvol bijgewerkt!</p>}
+
+      <div className="flex gap-4 flex-wrap mb-6">
+        <button
+          onClick={handleUpdate}
+          disabled={saving}
+          className="px-6 py-2 bg-white text-black font-semibold rounded-xl hover:bg-gray-200 transition"
+        >
+          {saving ? 'Bezig met opslaan...' : '📤 Update JSON'}
+        </button>
+
+        <button
+          onClick={handleRegenerate}
+          disabled={regenerating}
+          className="px-6 py-2 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition"
+        >
+          {regenerating ? 'Bezig met hergenereren...' : '🔁 Herbouw download + gallery'}
+        </button>
+      </div>
 
       {!loading && Object.keys(downloads).length === 0 && (
         <p>❌ Geen downloads gevonden.</p>
@@ -120,14 +169,6 @@ const JSON_URL = '/api/get-json'
           </li>
         ))}
       </ul>
-
-      <button
-        onClick={handleUpdate}
-        disabled={saving}
-        className="mt-6 px-6 py-2 bg-white text-black font-semibold rounded-xl hover:bg-gray-200 transition"
-      >
-        {saving ? 'Bezig met opslaan...' : '📤 Update JSON'}
-      </button>
     </div>
   )
 }
