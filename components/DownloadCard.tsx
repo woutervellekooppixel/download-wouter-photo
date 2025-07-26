@@ -5,8 +5,6 @@ import { FaChevronDown } from 'react-icons/fa'
 
 type Props = {
   title: string
-  client: string
-  date: string
   downloadUrl: string
 }
 
