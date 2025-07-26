@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { listObjects, deleteFolder, uploadJson, getJson } from '@/lib/r2-utils'
 
 export async function POST(req: Request) {
-  const { slug } = await req.json()
+  const downloads = await getJson('data.json')
 
   if (!slug) {
     return NextResponse.json({ success: false, error: 'Slug ontbreekt' }, { status: 400 })
