@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic' // ✅ Forceer dynamisch gedrag op Vercel
+
 export async function GET() {
   const JSON_URL = 'https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/data.json'
 
@@ -9,15 +11,16 @@ export async function GET() {
     })
     const data = await res.json()
 
-    return new NextResponse(JSON.stringify(data), {
+    return new Response(JSON.stringify(data), {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-store, max-age=0',
       },
     })
   } catch (e) {
-    return new NextResponse(JSON.stringify({ error: 'Failed to fetch JSON' }), {
-      status: 500,
-    })
+    return new Response(
+      JSON.stringify({ error: 'Failed to fetch JSON' }),
+      { status: 500 }
+    )
   }
 }
