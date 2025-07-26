@@ -1,26 +1,27 @@
 import { NextResponse } from 'next/server'
-import { listObjects, deleteFolder, uploadJson, getJson } from '@/lib/r2-utils'
+import { deleteFolder, uploadJson, getJson } from '@/lib/r2-utils'
 
 export async function POST(req: Request) {
-  const downloads = await getJson('data.json')
-
-  if (!slug) {
-    return NextResponse.json({ success: false, error: 'Slug ontbreekt' }, { status: 400 })
-  }
-
   try {
-    // Haal huidige JSON op
-    const downloads = await getJson()
+    // 👉 Haal de slug uit het request body
+    const { slug } = await req.json()
 
-    // Verwijder entry uit JSON
+    if (!slug) {
+      return NextResponse.json({ success: false, error: 'Slug ontbreekt' }, { status: 400 })
+    }
+
+    // 👉 Haal huidige data.json op
+    const downloads = await getJson('data.json')
+
+    // 👉 Verwijder de entry
     delete downloads[slug]
 
-    // Upload aangepaste JSON
+    // 👉 Upload de aangepaste JSON terug naar R2
     await uploadJson(downloads)
 
-    // Verwijder map in R2
+    // 👉 Verwijder de map in zowel /photos als /files (fallback)
     await deleteFolder(`photos/${slug}/`)
-    await deleteFolder(`files/${slug}/`) // fallback
+    await deleteFolder(`files/${slug}/`)
 
     return NextResponse.json({ success: true })
   } catch (err: any) {
