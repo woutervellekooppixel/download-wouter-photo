@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react'
 import FolderUploader from '@/components/FolderUploader'
 
+
+
 type DownloadEntry = {
   title: string
   downloadUrl: string
   heroImage: string
   hasGallery?: boolean
 }
+
+
 
 export default function BeheerPage() {
   const [downloads, setDownloads] = useState<Record<string, DownloadEntry>>({})
