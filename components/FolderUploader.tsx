@@ -3,13 +3,12 @@
 import { useEffect, useRef, useState } from 'react'
 
 export default function FolderUploader() {
-  const [files, setFiles] = useState<FileList | null>(null)
+  const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [totalFiles, setTotalFiles] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // ✅ Zet webkitdirectory via JS om TypeScript build errors te vermijden
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.setAttribute('webkitdirectory', '')
@@ -18,16 +17,16 @@ export default function FolderUploader() {
   }, [])
 
   const handleUpload = async () => {
-    if (!files) return
-    const allFiles = Array.from(files)
+    if (!files.length) return
+
     setUploading(true)
-    setTotalFiles(allFiles.length)
+    setTotalFiles(files.length)
     setProgress(0)
 
     let uploaded = 0
 
-    for (const file of allFiles) {
-      const fullPath = (file as any).webkitRelativePath
+    for (const file of files) {
+      const fullPath = (file as any).webkitRelativePath || file.name
 
       const formData = new FormData()
       formData.append('file', file)
@@ -42,11 +41,20 @@ export default function FolderUploader() {
       setProgress(uploaded)
     }
 
-    // ✅ Automatisch data.json bijwerken na upload
     await fetch('/api/update-json', { method: 'POST' })
 
     alert('Upload afgerond ✅')
     setUploading(false)
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files
+    if (!selectedFiles) return
+    const fileArray = Array.from(selectedFiles)
+    setFiles(fileArray)
+
+    const zipFiles = fileArray.filter((f) => f.name.endsWith('.zip'))
+    console.log('📦 ZIP-bestanden gevonden:', zipFiles.map((f) => f.name))
   }
 
   return (
@@ -57,12 +65,12 @@ export default function FolderUploader() {
         ref={inputRef}
         type="file"
         multiple
-        onChange={(e) => setFiles(e.target.files)}
+        onChange={handleFileChange}
       />
 
       <button
         onClick={handleUpload}
-        disabled={!files || uploading}
+        disabled={!files.length || uploading}
         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
       >
         {uploading ? 'Bezig met uploaden...' : 'Uploaden naar R2'}

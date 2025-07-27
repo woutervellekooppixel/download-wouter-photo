@@ -4,8 +4,8 @@ import type { NextRequest } from 'next/server'
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // 🔒 Basic Auth voor /beheer
-  if (pathname.startsWith('/beheer')) {
+  // 🔒 Alleen Basic Auth op de beheerpagina zelf, niet op API-routes
+  if (pathname === '/beheer') {
     const authHeader = request.headers.get('authorization')
     const username = process.env.LOGIN_USERNAME || ''
     const password = process.env.LOGIN_PASSWORD || ''
@@ -30,5 +30,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/beheer'],
+  matcher: ['/', '/beheer'], // ✅ laat /api/* ongemoeid
 }
