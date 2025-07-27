@@ -20,11 +20,6 @@ export default function FolderUploader() {
   const handleUpload = async () => {
     if (!files.length) return
 
-    console.log('⬇️ Volledige bestandslijst:')
-    files.forEach((f) => {
-      console.log(f.name, (f as any).webkitRelativePath, `${f.size} bytes`)
-    })
-
     setUploading(true)
     setTotalFiles(files.length)
     setProgress(0)
@@ -35,34 +30,33 @@ export default function FolderUploader() {
     for (const file of files) {
       const fullPath = (file as any).webkitRelativePath || file.name
 
-      console.log(`🧪 Nu bezig met: ${fullPath}`)
+      // 👇 Vraag een signed upload-URL op voor elk bestand
+      const res = await fetch('/api/get-upload-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fileName: fullPath,
+          contentType: file.type || 'application/octet-stream',
+        }),
+      })
 
-      if (file.name.endsWith('.zip')) {
-        console.log('📦 ZIP-bestand gevonden en wordt geüpload!')
-      }
+      const { signedUrl } = await res.json()
 
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('path', fullPath)
+      // 👇 Upload direct naar R2 via signed URL
+      const uploadRes = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+      })
 
-      try {
-        const res = await fetch('/api/upload-folder', {
-          method: 'POST',
-          body: formData,
-        })
-
-        if (!res.ok) {
-          console.error(`❌ Fout bij uploaden van ${fullPath}:`, await res.text())
-        }
-      } catch (err) {
-        console.error(`❌ Uploadfout bij ${fullPath}:`, err)
+      if (!uploadRes.ok) {
+        console.error(`❌ Upload mislukt voor ${fullPath}`)
       }
 
       uploaded++
       setProgress(uploaded)
     }
 
-    // Update JSON na alle uploads
+    // JSON bijwerken
     await fetch('/api/update-json', { method: 'POST' })
 
     setUploading(false)
@@ -80,7 +74,7 @@ export default function FolderUploader() {
     setFiles(fileArray)
 
     const zipFiles = fileArray.filter((f) => f.name.endsWith('.zip'))
-    console.log('📦 ZIP-bestanden gevonden bij selectie:', zipFiles.map((f) => f.name))
+    console.log('📦 ZIP-bestanden gevonden:', zipFiles.map((f) => f.name))
   }
 
   return (
