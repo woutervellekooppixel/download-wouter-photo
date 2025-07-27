@@ -1,3 +1,5 @@
+export const runtime = 'nodejs'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { r2 } from '@/lib/r2'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
