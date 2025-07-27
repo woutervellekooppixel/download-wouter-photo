@@ -20,6 +20,11 @@ export default function FolderUploader() {
   const handleUpload = async () => {
     if (!files.length) return
 
+    console.log('⬇️ Volledige bestandslijst:')
+    files.forEach((f) => {
+      console.log(f.name, (f as any).webkitRelativePath, `${f.size} bytes`)
+    })
+
     setUploading(true)
     setTotalFiles(files.length)
     setProgress(0)
@@ -30,11 +35,15 @@ export default function FolderUploader() {
     for (const file of files) {
       const fullPath = (file as any).webkitRelativePath || file.name
 
+      console.log(`🧪 Nu bezig met: ${fullPath}`)
+
+      if (file.name.endsWith('.zip')) {
+        console.log('📦 ZIP-bestand gevonden en wordt geüpload!')
+      }
+
       const formData = new FormData()
       formData.append('file', file)
       formData.append('path', fullPath)
-
-      console.log(`⬆️ Uploading: ${fullPath}`)
 
       try {
         const res = await fetch('/api/upload-folder', {
@@ -43,7 +52,7 @@ export default function FolderUploader() {
         })
 
         if (!res.ok) {
-          console.error(`❌ Fout bij uploaden van ${fullPath}`)
+          console.error(`❌ Fout bij uploaden van ${fullPath}:`, await res.text())
         }
       } catch (err) {
         console.error(`❌ Uploadfout bij ${fullPath}:`, err)
@@ -71,7 +80,7 @@ export default function FolderUploader() {
     setFiles(fileArray)
 
     const zipFiles = fileArray.filter((f) => f.name.endsWith('.zip'))
-    console.log('📦 ZIP-bestanden gevonden:', zipFiles.map((f) => f.name))
+    console.log('📦 ZIP-bestanden gevonden bij selectie:', zipFiles.map((f) => f.name))
   }
 
   return (
