@@ -6,6 +6,9 @@ import GallerySection from '@/components/GallerySection'
 import { transformToDirectLink } from '@/scripts/transformToDirectLink'
 import type { JSX } from 'react'
 
+await new Promise((resolve) => setTimeout(resolve, 2000)) // 2 seconden vertraging
+
+
 type DownloadInfo = {
   title: string
   downloadUrl: string

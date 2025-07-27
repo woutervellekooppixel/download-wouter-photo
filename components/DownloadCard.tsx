@@ -34,19 +34,19 @@ export default function DownloadCard({ title, downloadUrl }: Props) {
           <div className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 w-3 h-3 bg-white rotate-45 shadow-sm z-[-1]" />
         </div>
 
-        {/* Grote ronde knop */}
+        {/* Grote ronde knop met ping */}
         <a
           href={downloadUrl}
           download
-          className="w-40 h-40 rounded-full bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center shadow-md hover:shadow-white/20 hover:shadow-2xl hover:scale-105 transition-all duration-300"
+          className="relative w-40 h-40 rounded-full bg-white/10 border border-white/20 backdrop-blur-md flex items-center justify-center shadow-md hover:shadow-white/20 hover:shadow-2xl hover:scale-105 transition-all duration-300"
           onMouseEnter={() => setShowTooltip(true)}
           onMouseLeave={() => setShowTooltip(false)}
         >
-          <FaChevronDown className="text-white text-2xl opacity-80 hover:opacity-100 transition-opacity duration-300" />
+          {/* Ping effect */}
+          <span className="absolute inline-flex h-full w-full rounded-full bg-white/20 animate-pingSlow"/>
+          <FaChevronDown className="relative z-10 text-white text-2xl opacity-80 hover:opacity-100 transition-opacity duration-300" />
         </a>
       </div>
-
-      
     </div>
   )
 }

@@ -7,6 +7,7 @@ export default function FolderUploader() {
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [totalFiles, setTotalFiles] = useState(0)
+  const [success, setSuccess] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -22,6 +23,7 @@ export default function FolderUploader() {
     setUploading(true)
     setTotalFiles(files.length)
     setProgress(0)
+    setSuccess(false)
 
     let uploaded = 0
 
@@ -43,8 +45,12 @@ export default function FolderUploader() {
 
     await fetch('/api/update-json', { method: 'POST' })
 
-    alert('Upload afgerond ✅')
     setUploading(false)
+    setSuccess(true)
+
+    setTimeout(() => {
+      window.location.reload()
+    }, 2000)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,12 +72,13 @@ export default function FolderUploader() {
         type="file"
         multiple
         onChange={handleFileChange}
+        className="mb-4"
       />
 
       <button
         onClick={handleUpload}
         disabled={!files.length || uploading}
-        className="mt-4 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+        className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
       >
         {uploading ? 'Bezig met uploaden...' : 'Uploaden naar R2'}
       </button>
@@ -87,6 +94,12 @@ export default function FolderUploader() {
               style={{ width: `${(progress / totalFiles) * 100}%` }}
             />
           </div>
+        </div>
+      )}
+
+      {success && (
+        <div className="mt-4 text-green-500 font-semibold">
+          ✅ Upload voltooid – pagina wordt ververst...
         </div>
       )}
     </div>
