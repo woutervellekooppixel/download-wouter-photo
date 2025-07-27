@@ -34,15 +34,26 @@ export default function FolderUploader() {
       formData.append('file', file)
       formData.append('path', fullPath)
 
-      await fetch('/api/upload-folder', {
-        method: 'POST',
-        body: formData,
-      })
+      console.log(`⬆️ Uploading: ${fullPath}`)
+
+      try {
+        const res = await fetch('/api/upload-folder', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!res.ok) {
+          console.error(`❌ Fout bij uploaden van ${fullPath}`)
+        }
+      } catch (err) {
+        console.error(`❌ Uploadfout bij ${fullPath}:`, err)
+      }
 
       uploaded++
       setProgress(uploaded)
     }
 
+    // Update JSON na alle uploads
     await fetch('/api/update-json', { method: 'POST' })
 
     setUploading(false)
