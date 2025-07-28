@@ -28,7 +28,7 @@ function toTitle(str: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    let overrides = {}
+    let overrides: Record<string, any> = {}
     try {
       overrides = await req.json()
     } catch {
