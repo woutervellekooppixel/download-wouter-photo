@@ -82,7 +82,7 @@ return (
 
       {/* ✅ GALLERY */}
       {hasGallery && Object.keys(galleryData).length > 0 && (
-        <div className="px-6 py-12">
+        <div className="px-5 md:px-16 xl:px-60 py-12">
           {Object.entries(galleryData).map(([section, urls]) => (
             <GallerySection
               key={section}

@@ -11,7 +11,9 @@ type Props = {
 export default function GallerySection({ sectionTitle, images }: Props) {
   return (
     <div className="my-10">
-      <h2 className="text-xl font-semibold mb-4">{sectionTitle}</h2>
+      <h2 className="text-3xl font-semibold mb-4">
+        {sectionTitle.replaceAll('_', ' ')}
+      </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-4">
         {images.map((url, i) => {
