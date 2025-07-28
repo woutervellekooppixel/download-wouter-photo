@@ -14,13 +14,8 @@ type DownloadEntry = {
 export default function BeheerPage() {
   const [downloads, setDownloads] = useState<Record<string, DownloadEntry>>({})
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [regenerating, setRegenerating] = useState(false)
-  const [filter, setFilter] = useState('')
-  const [dark, setDark] = useState(true)
-  const [deleteSlug, setDeleteSlug] = useState<string | null>(null) // voor modal
+  const [deleteSlug, setDeleteSlug] = useState<string | null>(null)
 
   useEffect(() => {
     const loadData = async () => {
@@ -28,11 +23,6 @@ export default function BeheerPage() {
         const JSON_URL = `/api/get-json?cb=${Date.now()}`
         const res = await fetch(JSON_URL)
         const json = await res.json()
-        Object.keys(json).forEach((slug) => {
-          if (typeof json[slug].hasGallery !== 'boolean') {
-            json[slug].hasGallery = false
-          }
-        })
         setDownloads(json)
       } catch (e) {
         setError('⚠️ Kan huidige downloads niet laden.')
@@ -44,63 +34,45 @@ export default function BeheerPage() {
     loadData()
   }, [])
 
-  const handleUpdate = async () => {
-    setSaving(true)
-    setSuccess(false)
-    setError(null)
-    try {
-      const response = await fetch('/api/update-json', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(downloads),
-      })
-      const result = await response.json()
-      if (!result.success) throw new Error(result.error || 'Onbekende fout')
-      setSuccess(true)
-      toast.success('✅ JSON succesvol bijgewerkt!')
-    } catch (e: any) {
-      setError('❌ Fout bij opslaan: ' + e.message)
-      toast.error('❌ Fout bij opslaan: ' + e.message)
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleRegenerate = async () => {
-    const slug = prompt('Welke slug wil je hergenereren (bv: 2024-12-28_Nick-Schilder)?')
-    if (!slug) return
-    setRegenerating(true)
-    setError(null)
-    setSuccess(false)
-    try {
-      const res = await fetch('/api/regenerate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug }),
-      })
-      const json = await res.json()
-      if (!json.success) {
-        throw new Error(json?.dataUpdated?.error || json?.galleryUpdated?.error || 'Onbekende fout')
+  const updateEntry = (slug: string, field: keyof DownloadEntry, value: any) => {
+    setDownloads(prev => {
+      const updated = {
+        ...prev,
+        [slug]: {
+          ...prev[slug],
+          [field]: value,
+        },
       }
-      toast.success(`✅ ${slug} opnieuw gegenereerd!`)
-      setSuccess(true)
-    } catch (e: any) {
-      setError('❌ Fout bij hergenereren: ' + e.message)
-      toast.error('❌ Fout bij hergenereren: ' + e.message)
-    } finally {
-      setRegenerating(false)
-    }
+
+      fetch('/api/update-json', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      })
+        .then(res => res.json())
+        .then(result => {
+          if (!result.success) throw new Error(result.error || 'Onbekende fout')
+          toast.success('✅ JSON bijgewerkt!')
+          if (field === 'hasGallery' && value) {
+            fetch('/api/regenerate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ slug }),
+            }).then(() => toast.success('✅ Gallery opnieuw gegenereerd!'))
+          }
+        })
+        .catch(e => {
+          toast.error('❌ Fout bij opslaan: ' + e.message)
+        })
+
+      return updated
+    })
   }
 
-  // Modal voor verwijderen
-  const handleDelete = async (slug: string) => {
-    setDeleteSlug(slug)
-  }
+  // Verwijderen
+  const handleDelete = (slug: string) => setDeleteSlug(slug)
   const confirmDelete = async () => {
     if (!deleteSlug) return
-    setSaving(true)
-    setError(null)
-    setSuccess(false)
     try {
       const res = await fetch('/api/delete', {
         method: 'POST',
@@ -112,74 +84,29 @@ export default function BeheerPage() {
       const updated = { ...downloads }
       delete updated[deleteSlug]
       setDownloads(updated)
-      setSuccess(true)
       toast.success('✅ Verwijderd!')
     } catch (e: any) {
-      setError('❌ Verwijderen mislukt: ' + e.message)
       toast.error('❌ Verwijderen mislukt: ' + e.message)
     } finally {
-      setSaving(false)
       setDeleteSlug(null)
     }
   }
 
-  const updateEntry = (slug: string, field: keyof DownloadEntry, value: any) => {
-    setDownloads((prev) => ({
-      ...prev,
-      [slug]: {
-        ...prev[slug],
-        [field]: value,
-      },
-    }))
-  }
-
-  // Filtered downloads
-  const filtered = Object.entries(downloads)
-    .filter(([slug, entry]) =>
-      slug.toLowerCase().includes(filter.toLowerCase()) ||
-      entry.title.toLowerCase().includes(filter.toLowerCase())
-    )
-
   return (
-    <div className="min-h-screen bg-gray-950 text-white p-6 max-w-5xl mx-auto relative transition-colors duration-300">
+    <div className="min-h-screen text-white p-6 max-w-5xl mx-auto relative transition-colors duration-300">
       <Toaster position="top-center" />
 
-      <h1 className="text-3xl font-bold mb-8 tracking-tight">📁 Beheerpagina</h1>
+      {/* Upload bovenaan */}
+      <FolderUploader />
 
-      <input
-        type="text"
-        placeholder="Zoek op titel of slug..."
-        value={filter}
-        onChange={e => setFilter(e.target.value)}
-        className="mb-6 w-full px-4 py-2 rounded-xl bg-gray-900 border-gray-800 text-white border placeholder-gray-400 focus:outline-none"
-      />
-
-      <div className="flex gap-4 flex-wrap mb-8">
-        <button
-          onClick={handleUpdate}
-          disabled={saving}
-          className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-700 transition disabled:opacity-50"
-        >
-          <span>📤</span>
-          {saving ? 'Bezig met opslaan...' : 'Update JSON'}
-        </button>
-        <button
-          onClick={handleRegenerate}
-          disabled={regenerating}
-          className="flex items-center gap-2 px-6 py-2 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-600 transition disabled:opacity-50"
-        >
-          <span>🔁</span>
-          {regenerating ? 'Bezig met hergenereren...' : 'Herbouw download + gallery'}
-        </button>
-      </div>
-
+      {/* Downloads onderaan */}
       {loading && <p>Laden...</p>}
-      {!loading && filtered.length === 0 && (
+      {!loading && Object.keys(downloads).length === 0 && (
         <p>❌ Geen downloads gevonden.</p>
       )}
 
-      <ul className="grid gap-6 sm:grid-cols-2">
-        {filtered.map(([slug, entry]) => (
+      <ul className="grid gap-6 sm:grid-cols-2 mt-8">
+        {Object.entries(downloads).map(([slug, entry]) => (
           <li
             key={slug}
             className="bg-gray-900/80 text-white rounded-2xl p-6 border border-gray-800 shadow transition-transform hover:scale-[1.01] flex flex-col gap-4"
@@ -209,15 +136,16 @@ export default function BeheerPage() {
             <div className="flex flex-wrap gap-3 items-center mt-2">
               <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
                 <span>Gallery tonen</span>
-                <input
-                  type="checkbox"
-                  checked={!!entry.hasGallery}
-                  onChange={(e) => updateEntry(slug, 'hasGallery', e.target.checked)}
-                  className="peer sr-only"
-                />
-                <span className="w-10 h-5 bg-gray-700 rounded-full peer-checked:bg-gray-400 relative transition-colors duration-300">
-                  <span className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5" />
-                </span>
+                <div className="relative w-10 h-6">
+                  <input
+                    type="checkbox"
+                    checked={!!entry.hasGallery}
+                    onChange={(e) => updateEntry(slug, 'hasGallery', e.target.checked)}
+                    className="peer sr-only"
+                  />
+                  <div className="w-10 h-6 bg-gray-700 rounded-full peer-checked:bg-gray-400 transition-colors duration-300" />
+                  <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-4 pointer-events-none" />
+                </div>
               </label>
               <a
                 href={entry.downloadUrl}
@@ -267,10 +195,6 @@ export default function BeheerPage() {
           </div>
         </div>
       )}
-
-      <div className="mt-10">
-        <FolderUploader />
-      </div>
     </div>
   )
 }

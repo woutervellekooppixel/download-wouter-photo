@@ -28,7 +28,12 @@ function toTitle(str: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    const overrides = await req.json()
+    let overrides = {}
+    try {
+      overrides = await req.json()
+    } catch {
+      overrides = {}
+    }
     console.log('⬇️ Ontvangen overrides:', overrides)
 
     // 📁 Eerst: lees alle folders onder /photos/
@@ -110,7 +115,7 @@ const jpg = filesInMainFolder
       count: Object.keys(data).length,
     })
   } catch (e) {
-    console.error('❌ Fout in /api/update-json:', e)
+    console.error('❌ Fout in /api/update-json:', e, e?.stack)
     return NextResponse.json(
       { success: false, error: (e as Error).message },
       { status: 500 }

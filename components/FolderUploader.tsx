@@ -8,6 +8,7 @@ export default function FolderUploader() {
   const [progress, setProgress] = useState(0)
   const [totalFiles, setTotalFiles] = useState(0)
   const [success, setSuccess] = useState(false)
+  const [updatingJson, setUpdatingJson] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -17,17 +18,17 @@ export default function FolderUploader() {
     }
   }, [])
 
-  const handleUpload = async () => {
-    if (!files.length) return
+  const handleUpload = async (uploadFiles: File[]) => {
+    if (!uploadFiles.length) return
 
     setUploading(true)
-    setTotalFiles(files.length)
+    setTotalFiles(uploadFiles.length)
     setProgress(0)
     setSuccess(false)
 
     let uploaded = 0
 
-    for (const file of files) {
+    for (const file of uploadFiles) {
       const fullPath = (file as any).webkitRelativePath || file.name
 
       // 👇 Vraag een signed upload-URL op voor elk bestand
@@ -56,15 +57,27 @@ export default function FolderUploader() {
       setProgress(uploaded)
     }
 
-    // JSON bijwerken
-    await fetch('/api/update-json', { method: 'POST' })
-
     setUploading(false)
-    setSuccess(true)
 
-    setTimeout(() => {
+    setUpdatingJson(true)
+    // JSON bijwerken
+    const res = await fetch('/api/update-json', { method: 'POST' })
+    let result = null
+    try {
+      result = await res.json()
+    } catch {
+      alert('Fout: backend gaf geen geldige JSON terug!')
+      setUpdatingJson(false)
+      return
+    }
+    setUpdatingJson(false)
+    if (result && result.success) {
       window.location.reload()
-    }, 2000)
+    } else {
+      alert('Fout bij bijwerken van JSON: ' + (result?.error || 'Onbekende fout'))
+    }
+
+    setSuccess(true)
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -77,15 +90,19 @@ export default function FolderUploader() {
 
     const zipFiles = fileArray.filter((f) => f.name.endsWith('.zip'))
     console.log('📦 ZIP-bestanden gevonden:', zipFiles.map((f) => f.name))
+
+    // Start direct met uploaden
+    if (fileArray.length > 0) {
+      handleUpload(fileArray)
+    }
   }
 
   return (
     <div className="">
-
       <div className="mt-8">
         <label
           htmlFor="folder-upload"
-          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 bg-gray-900/60 backdrop-blur rounded-xl p-10 cursor-pointer hover:border-blue-500 hover:bg-gray-900/80 transition text-gray-300"
+          className="flex flex-col items-center justify-center border-2 border-dashed border-gray-700 backdrop-blur rounded-xl p-10 cursor-pointer hover:border-blue-500 hover:bg-gray-900/40 transition text-gray-300"
         >
           <span className="text-4xl mb-2">📁</span>
           <span className="mb-2">Sleep hier een map, of klik om te kiezen</span>
@@ -101,15 +118,6 @@ export default function FolderUploader() {
           />
         </label>
 
-        <button
-          onClick={handleUpload}
-          disabled={!files.length || uploading}
-          className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-700 transition disabled:opacity-50 mt-6"
-        >
-          <span>📤</span>
-          {uploading ? 'Bezig met uploaden...' : 'Uploaden naar R2'}
-        </button>
-
         {uploading && (
           <div className="mt-4 w-full">
             <div className="text-sm mb-1">
@@ -121,6 +129,12 @@ export default function FolderUploader() {
                 style={{ width: `${(progress / totalFiles) * 100}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {updatingJson && (
+          <div className="mt-4 inline-block bg-yellow-500 text-white px-4 py-2 rounded-full font-semibold">
+            ⏳ JSON wordt bijgewerkt...
           </div>
         )}
 
