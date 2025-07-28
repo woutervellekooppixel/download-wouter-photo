@@ -91,7 +91,7 @@ const jpg = filesInMainFolder
         title,
         downloadUrl: `https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/photos/${slug}/${zip}`,
         heroImage: `https://pub-0259df1e2f8a4519882e857eebaab6fa.r2.dev/photos/${slug}/${jpg}`,
-        ...(finalHasGallery && { hasGallery: true }),
+        hasGallery: !!finalHasGallery, // <-- altijd true of false
       }
 
       console.log(`✅ Toegevoegd: ${slug}`)
