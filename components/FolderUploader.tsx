@@ -111,10 +111,12 @@ export default function FolderUploader() {
             ref={inputRef}
             type="file"
             multiple
-            webkitdirectory="true"
-            directory="true"
             onChange={handleFileChange}
             className="hidden"
+            // @ts-ignore
+            webkitdirectory=""
+            // @ts-ignore
+            directory=""
           />
         </label>
 
