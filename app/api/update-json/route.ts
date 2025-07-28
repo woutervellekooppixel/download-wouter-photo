@@ -115,7 +115,7 @@ const jpg = filesInMainFolder
       count: Object.keys(data).length,
     })
   } catch (e) {
-    console.error('❌ Fout in /api/update-json:', e, e?.stack)
+    console.error('❌ Fout in /api/update-json:', e, (e as Error).stack)
     return NextResponse.json(
       { success: false, error: (e as Error).message },
       { status: 500 }
