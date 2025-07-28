@@ -141,14 +141,8 @@ export default function BeheerPage() {
     )
 
   return (
-    <div className={`${dark ? 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white' : 'bg-gradient-to-br from-gray-100 via-gray-200 to-gray-100 text-black'} min-h-screen p-6 max-w-5xl mx-auto relative transition-colors duration-300`}>
+    <div className="min-h-screen bg-gray-950 text-white p-6 max-w-5xl mx-auto relative transition-colors duration-300">
       <Toaster position="top-center" />
-      <button
-        onClick={() => setDark(d => !d)}
-        className="absolute top-6 right-6 bg-white/20 px-3 py-1 rounded-full text-xs z-10"
-      >
-        {dark ? '🌙 Donker' : '☀️ Licht'}
-      </button>
 
       <h1 className="text-3xl font-bold mb-8 tracking-tight">📁 Beheerpagina</h1>
 
@@ -157,14 +151,14 @@ export default function BeheerPage() {
         placeholder="Zoek op titel of slug..."
         value={filter}
         onChange={e => setFilter(e.target.value)}
-        className={`mb-6 w-full px-4 py-2 rounded-xl ${dark ? 'bg-white/10 border-white/10 text-white' : 'bg-white border-gray-300 text-black'} border placeholder-gray-400 focus:outline-none`}
+        className="mb-6 w-full px-4 py-2 rounded-xl bg-gray-900 border-gray-800 text-white border placeholder-gray-400 focus:outline-none"
       />
 
       <div className="flex gap-4 flex-wrap mb-8">
         <button
           onClick={handleUpdate}
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2 bg-gray-800 text-white font-semibold rounded-xl hover:bg-gray-700 transition disabled:opacity-50"
         >
           <span>📤</span>
           {saving ? 'Bezig met opslaan...' : 'Update JSON'}
@@ -172,7 +166,7 @@ export default function BeheerPage() {
         <button
           onClick={handleRegenerate}
           disabled={regenerating}
-          className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-2 bg-gray-700 text-white font-semibold rounded-xl hover:bg-gray-600 transition disabled:opacity-50"
         >
           <span>🔁</span>
           {regenerating ? 'Bezig met hergenereren...' : 'Herbouw download + gallery'}
@@ -188,17 +182,17 @@ export default function BeheerPage() {
         {filtered.map(([slug, entry]) => (
           <li
             key={slug}
-            className="backdrop-blur bg-white/10 rounded-2xl p-6 border border-white/10 shadow-lg transition-transform hover:scale-[1.02] hover:shadow-2xl flex flex-col gap-4"
+            className="bg-gray-900/80 text-white rounded-2xl p-6 border border-gray-800 shadow transition-transform hover:scale-[1.01] flex flex-col gap-4"
           >
             <div className="flex items-center gap-4">
               <img
                 src={entry.heroImage}
                 alt=""
-                className="w-20 h-20 object-cover rounded-xl border border-white/20 shadow"
+                className="w-20 h-20 object-cover rounded-xl border border-gray-800 shadow"
               />
               <div>
                 <div
-                  className="inline-block bg-white/20 text-xs px-3 py-1 rounded-full font-mono mb-2 cursor-pointer hover:bg-white/30 transition"
+                  className="inline-block bg-gray-800/70 text-xs px-3 py-1 rounded-full font-mono mb-2 cursor-pointer hover:bg-gray-700 transition"
                   onClick={() => {navigator.clipboard.writeText(slug); toast.success('Slug gekopieerd!')}}
                   title="Klik om te kopiëren"
                 >
@@ -208,7 +202,7 @@ export default function BeheerPage() {
                   type="text"
                   value={entry.title}
                   onChange={(e) => updateEntry(slug, 'title', e.target.value)}
-                  className={`w-full bg-transparent border-b ${dark ? 'border-white/20 text-white' : 'border-gray-400 text-black'} text-lg font-medium focus:outline-none`}
+                  className="w-full bg-transparent border-b border-gray-700 text-lg font-medium focus:outline-none"
                 />
               </div>
             </div>
@@ -221,7 +215,7 @@ export default function BeheerPage() {
                   onChange={(e) => updateEntry(slug, 'hasGallery', e.target.checked)}
                   className="peer sr-only"
                 />
-                <span className="w-10 h-5 bg-gray-400 rounded-full peer-checked:bg-green-500 relative transition-colors duration-300">
+                <span className="w-10 h-5 bg-gray-700 rounded-full peer-checked:bg-gray-400 relative transition-colors duration-300">
                   <span className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5" />
                 </span>
               </label>
@@ -229,7 +223,7 @@ export default function BeheerPage() {
                 href={entry.downloadUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1 text-sm underline text-blue-400 hover:text-blue-200"
+                className="flex items-center gap-1 text-sm text-gray-300 hover:text-white transition"
                 title="Downloadlink openen"
               >
                 <span>⬇</span> Download
@@ -237,15 +231,17 @@ export default function BeheerPage() {
               <a
                 href={`/${slug}`}
                 target="_blank"
-                className="flex items-center gap-1 text-sm underline text-blue-400 hover:text-blue-200"
+                className="flex items-center gap-1 text-sm text-gray-300 hover:text-white transition"
               >
                 🔗 Bekijk
               </a>
               <button
                 onClick={() => handleDelete(slug)}
-                className="text-sm text-red-400 hover:text-red-200"
+                className="flex items-center gap-1 text-sm text-white hover:opacity-70 transition"
+                title="Verwijder"
               >
-                ❌ Verwijder
+                <span style={{fontSize: '1.2em', lineHeight: 1}}>✕</span>
+                Verwijder
               </button>
             </div>
           </li>
@@ -273,7 +269,6 @@ export default function BeheerPage() {
       )}
 
       <div className="mt-10">
-        <h2 className="text-xl font-semibold mb-4">Upload nieuwe download</h2>
         <FolderUploader />
       </div>
     </div>
