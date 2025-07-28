@@ -6,8 +6,6 @@ import GallerySection from '@/components/GallerySection'
 import { transformToDirectLink } from '@/scripts/transformToDirectLink'
 import type { JSX } from 'react'
 
-await new Promise((resolve) => setTimeout(resolve, 2000)) // 2 seconden vertraging
-
 
 type DownloadInfo = {
   title: string
@@ -67,14 +65,14 @@ export default async function Page({ params }: PageProps): Promise<JSX.Element> 
 const hasGalleryContent = hasGallery && Object.keys(galleryData).length > 0
 
 return (
-  <div className={`bg-black text-white ${hasGalleryContent ? 'min-h-screen' : 'h-screen overflow-hidden'}`}>
+  <div className={`bg-white dark:bg-black text-black dark:text-white transition-colors ${hasGalleryContent ? 'min-h-screen' : 'h-screen overflow-hidden'}`}>
       <Header />
 
       <div
         className="relative h-screen w-full bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: `url('${heroImageUrl}')` }}
       >
-        <div className="absolute inset-0 bg-black/10 z-0" />
+        <div className="absolute inset-0 bg-black/10 dark:bg-black/30 z-0 transition-colors" />
         <div className="relative z-10 flex items-center justify-center w-full h-full">
           <DownloadCard title={title} downloadUrl={transformedUrl} />
         </div>
@@ -82,7 +80,7 @@ return (
 
       {/* ✅ GALLERY */}
       {hasGallery && Object.keys(galleryData).length > 0 && (
-        <div className="px-5 md:px-16 xl:px-60 py-12">
+        <div className="px-5 md:px-16 xl:px-60 py-12 bg-white dark:bg-black transition-colors">
           {Object.entries(galleryData).map(([section, urls]) => (
             <GallerySection
               key={section}
